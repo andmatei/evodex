@@ -2,8 +2,8 @@ import math
 
 DEFAULT_ROBOT_CONFIG = {
     "base": {
-        "width": 100,
-        "height": 30,
+        "width": 30,
+        "height": 100,
         "kinematic": True,
         "initial_position": (250, 200),  # Centered a bit more for keyboard control
     },
@@ -11,7 +11,7 @@ DEFAULT_ROBOT_CONFIG = {
         {
             "num_segments": 3,
             "segment_length": 40,
-            "segment_width": 10,
+            "segment_width": 30,
             "motor_stiffness": 1e7,
             "motor_damping": 1e5,
             "joint_angle_limit_min": -math.pi / 4,
@@ -22,7 +22,7 @@ DEFAULT_ROBOT_CONFIG = {
             "motor_max_force": 5e7,
         },
         {
-            "num_segments": 2,
+            "num_segments": 1,
             "segment_length": 50,
             "segment_width": 12,
             "motor_stiffness": 1e7,

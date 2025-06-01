@@ -29,7 +29,6 @@ if __name__ == "__main__":
     )
 
     print(f"Running with scenario: {scenario_to_run.__class__.__name__}")
-    print(f"Robot base is kinematic: {env.simulation.robot.base.is_kinematic}")
     print(f"Robot base initial position: {env.simulation.robot.base.body.position}")
     print("Use arrow keys to move the robot base. Press 'r' to reset the simulation.")
 

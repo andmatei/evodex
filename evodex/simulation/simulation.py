@@ -39,6 +39,7 @@ class Simulation:
 
         self.space = pymunk.Space()
         self.space.gravity = self.sim_config["gravity"]
+        self.space.iterations = 20
         self.dt = self.sim_config["dt"]
 
         self.robot = None
@@ -118,7 +119,8 @@ class Simulation:
         else:
             self.scenario_pymunk_elements = []
 
-        self.robot = Robot(self.space, self.robot_config)
+        self.robot = Robot(self.robot_config)
+        self.robot.add_to_space(self.space)
 
         if self.scenario:
             self.scenario.reset_objects()
@@ -127,7 +129,7 @@ class Simulation:
         if actions is not None and self.robot:
             self.robot.apply_actions(actions)
 
-        if self.robot and self.robot.base.is_kinematic:
+        if self.robot:
             self.robot.base.body.velocity = (self.base_target_vx, self.base_target_vy)
 
         self.space.step(self.dt)

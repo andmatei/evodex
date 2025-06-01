@@ -25,9 +25,8 @@ class Simulation:
         self.robot_config = robot_config
         self.sim_config = robot_config["simulation"]
         self.scenario = scenario_instance
-        self.key_move_speed = self.sim_config.get(
-            "key_move_speed", 150
-        )  # Get from config
+        self.key_move_speed = self.sim_config.get("key_move_speed", 150)
+        self.key_angular_speed = self.sim_config.get("key_angular_speed", 1.5)
 
         pygame.init()
         self.screen_width = self.sim_config["screen_width"]
@@ -49,6 +48,8 @@ class Simulation:
         # For keyboard control of the base
         self.base_target_vx = 0.0
         self.base_target_vy = 0.0
+        self.base_target_omega = 0.0
+        self.angular_mode = False
 
         self.reset_simulation()
 
@@ -68,29 +69,61 @@ class Simulation:
     def handle_pygame_event(self, event):
         """Handles Pygame events, specifically for keyboard control of the base."""
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                self.base_target_vx = -self.key_move_speed
-            elif event.key == pygame.K_RIGHT:
-                self.base_target_vx = self.key_move_speed
-            elif (
-                event.key == pygame.K_UP
-            ):  # Pymunk Y is down, so negative VY moves up screen
+            if event.key == pygame.K_SPACE:
+                self.angular_mode = True
+                self.base_target_vx = 0.0
+
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    self.base_target_omega = -self.key_angular_speed
+                elif keys[pygame.K_RIGHT]:
+                    self.base_target_omega = self.key_angular_speed
+            elif event.key == pygame.K_UP:
                 self.base_target_vy = -self.key_move_speed
-            elif event.key == pygame.K_DOWN:  # Positive VY moves down screen
+            elif event.key == pygame.K_DOWN:
                 self.base_target_vy = self.key_move_speed
-            elif event.key == pygame.K_r:  # Allow reset via 'r' key
-                print("Resetting simulation via 'r' key...")
+            elif event.key == pygame.K_LEFT:
+                if self.angular_mode:
+                    self.base_target_omega = -self.key_angular_speed
+                    self.base_target_vx = 0.0
+                else:
+                    self.base_target_vx = -self.key_move_speed
+                    self.base_target_omega = 0.0
+            elif event.key == pygame.K_RIGHT:
+                if self.angular_mode:
+                    self.base_target_omega = self.key_angular_speed
+                    self.base_target_vx = 0.0
+                else:
+                    self.base_target_vx = self.key_move_speed
+                    self.base_target_omega = 0.0
+            elif event.key == pygame.K_r:
+                print("Resetting simulation...")
                 self.reset_simulation()
 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT and self.base_target_vx < 0:
-                self.base_target_vx = 0.0
-            elif event.key == pygame.K_RIGHT and self.base_target_vx > 0:
-                self.base_target_vx = 0.0
-            elif event.key == pygame.K_UP and self.base_target_vy < 0:
+            if (event.key == pygame.K_UP and self.base_target_vy < 0) or (
+                event.key == pygame.K_DOWN and self.base_target_vy > 0
+            ):
                 self.base_target_vy = 0.0
-            elif event.key == pygame.K_DOWN and self.base_target_vy > 0:
-                self.base_target_vy = 0.0
+            elif event.key == pygame.K_SPACE:
+                self.angular_mode = False
+                self.base_target_omega = 0.0
+
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    self.base_target_vx = -self.key_move_speed
+                elif keys[pygame.K_RIGHT]:
+                    self.base_target_vx = self.key_move_speed
+            if self.angular_mode:
+                if (event.key == pygame.K_LEFT and self.base_target_omega < 0) or (
+                    event.key == pygame.K_RIGHT and self.base_target_omega > 0
+                ):
+                    self.base_target_omega = 0.0
+            else:
+                if (event.key == pygame.K_LEFT and self.base_target_vx < 0) or (
+                    event.key == pygame.K_RIGHT and self.base_target_vx > 0
+                ):
+                    self.base_target_vx = 0.0
 
     def reset_simulation(self, new_robot_config=None, new_scenario_instance=None):
         # Reset keyboard-controlled velocities
@@ -102,6 +135,7 @@ class Simulation:
             self.sim_config = self.robot_config.get("simulation", self.sim_config)
             self.space.gravity = self.sim_config.get("gravity", self.space.gravity)
             self.key_move_speed = self.sim_config.get("key_move_speed", 150)
+            self.key_angular_speed = self.sim_config.get("key_angular_speed", 1.5)
 
         if new_scenario_instance:
             if self.scenario:
@@ -131,6 +165,7 @@ class Simulation:
 
         if self.robot:
             self.robot.base.body.velocity = (self.base_target_vx, self.base_target_vy)
+            self.robot.base.body.angular_velocity = self.base_target_omega
 
         self.space.step(self.dt)
 

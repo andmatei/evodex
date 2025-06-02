@@ -10,8 +10,8 @@ DEFAULT_ROBOT_CONFIG = {
     "fingers": [
         {
             "num_segments": 3,
-            "segment_length": 40,
-            "segment_width": 30,
+            "segment_lengths": [50, 40, 30],
+            "segment_widths": [30, 25, 20],
             "motor_stiffness": 1e7,
             "motor_damping": 1e5,
             "joint_angle_limit_min": -math.pi / 4,

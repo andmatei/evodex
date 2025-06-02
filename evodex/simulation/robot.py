@@ -74,25 +74,28 @@ class Finger:
         self.config = config
 
         self.num_segments = config["num_segments"]
+        self._build(base, attach_point)
 
+    def _build(self, base, attach_point):
+        """Build the finger segments and joints based on the configuration."""
         prev_body = base
         current_attach_point = base.local_to_world(attach_point)
         for i in range(self.num_segments):
             segment_length = (
-                config["segment_lengths"][i]
-                if "segment_lengths" in config
-                else config["segment_length"]
+                self.config["segment_lengths"][i]
+                if "segment_lengths" in self.config
+                else self.config["segment_length"]
             )
             segment_width = (
-                config["segment_widths"][i]
-                if "segment_widths" in config
-                else config["segment_width"]
+                self.config["segment_widths"][i]
+                if "segment_widths" in self.config
+                else self.config["segment_width"]
             )
             is_fingertip = i == self.num_segments - 1
             if_base = i == 0
 
             if i == 0:
-                initial_angle = base.angle  # Pointing downwards
+                initial_angle = base.angle
                 segment_pos_x = current_attach_point[0] + (segment_length / 2) * np.cos(
                     initial_angle
                 )
@@ -133,15 +136,15 @@ class Finger:
                 anchor_b_local_for_joint,
             )
 
-            min_angle_rel = config["joint_angle_limit_min"]
-            max_angle_rel = config["joint_angle_limit_max"]
+            min_angle_rel = self.config["joint_angle_limit_min"]
+            max_angle_rel = self.config["joint_angle_limit_max"]
             limit_joint = pymunk.RotaryLimitJoint(
                 prev_body, segment.body, min_angle_rel, max_angle_rel
             )
             self.joints.extend([joint, limit_joint])
 
             motor = pymunk.SimpleMotor(prev_body, segment.body, 0)
-            motor.max_force = config.get("motor_max_force", 5e7)
+            motor.max_force = self.config.get("motor_max_force", 5e7)
             self.motors.append(motor)
 
             prev_body = segment.body
@@ -257,28 +260,41 @@ class Robot:
         self.num_motors_per_finger = [f.num_segments for f in self.fingers]
         self.total_motors = sum(self.num_motors_per_finger)
 
-    def apply_actions(self, actions):
-        if len(actions) != self.total_motors:
+    def apply_actions(self, vx, vy, omega, motor_rates):
+        """Apply actions to the robot base and its fingers."""
+        # Apply base movement
+        self.base.body.velocity = vx, vy
+        self.base.body.angular_velocity = omega
+
+        # Apply motor rates to fingers
+        if len(motor_rates) != self.total_motors:
             return
         action_idx = 0
         for finger, num_motors in zip(self.fingers, self.num_motors_per_finger):
-            finger.set_motor_rates(actions[action_idx : action_idx + num_motors])
+            finger.set_motor_rates(motor_rates[action_idx : action_idx + num_motors])
             action_idx += num_motors
 
     def get_observation(self):
-        obs = [
-            self.base.body.position.x,
-            self.base.body.position.y,
-            self.base.body.angle,
-            self.base.body.velocity.x,
-            self.base.body.velocity.y,
-            self.base.body.angular_velocity,
-        ]
+        obs = {
+            "base": [
+                self.base.body.position.x,
+                self.base.body.position.y,
+                self.base.body.angle,
+                self.base.body.velocity.x,
+                self.base.body.velocity.y,
+                self.base.body.angular_velocity,
+            ],
+            "fingers": [],
+        }
         for finger in self.fingers:
-            obs.extend(finger.get_joint_angles())
+            finger_obs = finger.get_joint_angles()
             fingertip_pos = finger.get_fingertip_position()
-            obs.extend([fingertip_pos.x, fingertip_pos.y] if fingertip_pos else [0, 0])
-        return np.array(obs, dtype=np.float32)
+            finger_obs.extend(
+                [fingertip_pos.x, fingertip_pos.y] if fingertip_pos else [0, 0]
+            )
+            obs["fingers"].append(finger_obs)
+
+        return obs
 
     def remove_from_space(self, space):
         """Remove the robot and its components from the pymunk space."""

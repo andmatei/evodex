@@ -11,7 +11,6 @@ import pygame
 # --- Main Execution (Example Usage) ---
 if __name__ == "__main__":
     current_run_robot_config = DEFAULT_ROBOT_CONFIG.copy()
-    current_run_robot_config["base"]["kinematic"] = True
     current_run_robot_config["base"]["initial_position"] = (
         400,
         300,

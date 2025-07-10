@@ -4,8 +4,6 @@ DEFAULT_ROBOT_CONFIG = {
     "base": {
         "width": 30,
         "height": 100,
-        "kinematic": True,
-        "initial_position": (250, 200),  # Centered a bit more for keyboard control
     },
     "fingers": [
         {
@@ -35,12 +33,52 @@ DEFAULT_ROBOT_CONFIG = {
             "motor_max_force": 5e7,
         },
     ],
+}
+
+DEFAULT_SCENARIO_CONFIG = {
+    "type": "MoveCubeToTargetScenario",  # Default scenario type
+    "target_position": (600, 300),  # Default target position for scenarios
+}
+
+DEFAULT_SIMULATOR_CONFIG = {
     "simulation": {
         "dt": 1.0 / 60.0,
         "gravity": (0, 900),
         "screen_width": 800,
         "screen_height": 600,
         "world_scale": 1.0,
-        "key_move_speed": 150,  # Speed for keyboard-controlled base movement (pixels/sec)
+    },
+    "render": {
+        "enabled": True,
+        "fps": 60,
+        "draw_options": {
+            "draw_fps": True,
+            "draw_collision_shapes": False,
+            "draw_constraints": True,
+            "draw_kinematics": True,
+        },
+    },
+    "logging": {
+        "enabled": True,
+        "log_level": "INFO",  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        "log_file": "simulation.log",
+    },
+    "keyboard_control": {
+        "enabled": True,
+        "move_speed": 150,  # Speed for keyboard-controlled base movement (pixels/sec)
+        "angular_speed": 1.5,  # Angular speed for keyboard-controlled base rotation (radians/sec)
+    },
+    "collision": {
+        "ground": 0,
+        "robot_base": 1,
+        "robot_segment_start": 3,
+        "scenario_object_start": 100,
+        "scenario_static_start": 200,
+    },
+    "pymunk_to_pygame_coord": {
+        "scale": 1.0,  # Scale factor for converting Pymunk coordinates to Pygame coordinates
+    },
+    "pygame_to_pymunk_coord": {
+        "scale": 1.0,  # Scale factor for converting Pygame coordinates to Pymunk coordinates
     },
 }

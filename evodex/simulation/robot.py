@@ -1,6 +1,9 @@
 import numpy as np
 import pymunk
 
+from pydantic import BaseModel, Field, model_validator
+from typing import List, Dict, Union, Tuple, Literal, Optional
+
 FINGER_GROUP_START = 1
 
 CAT_ROBOT_BASE = 1 << 0
@@ -11,6 +14,71 @@ CAT_SCENARIO_OBJECT = 1 << 3
 MASK_ROBOT_BASE = CAT_SCENARIO_OBJECT | CAT_FINGER_SEGMENT
 MASK_FINGER_BASE = CAT_SCENARIO_OBJECT | CAT_FINGER_SEGMENT | CAT_FINGER_BASE
 MASK_ALL = CAT_SCENARIO_OBJECT | CAT_ROBOT_BASE | CAT_FINGER_BASE | CAT_FINGER_SEGMENT
+
+
+class BaseAction(BaseModel):
+    vx: float = Field(..., ge=-1.0, le=1.0)
+    vy: float = Field(..., ge=-1.0, le=1.0)
+    omega: float = Field(..., ge=-1.0, le=1.0)
+
+
+class HandAction(BaseModel):
+    base: BaseAction
+    fingers: List[List[float]]
+
+
+class GlobalSegmentConfig(BaseModel):
+    mass: Optional[float] = Field(None, ge=0.0)
+    motor_stiffness: Optional[float] = Field(None, ge=0.0)
+    motor_damping: Optional[float] = Field(None, ge=0.0)
+    joint_angle_limit: Optional[Tuple[float, float]] = Field(None)
+
+    @model_validator(mode="after")
+    def validate_joint_angle_limit(self) -> "GlobalSegmentConfig":
+        if self.joint_angle_limit is not None:
+            min_val, max_val = self.joint_angle_limit
+            if min_val > max_val:
+                raise ValueError(
+                    "joint_angle_limit_min must be less than joint_angle_limit_max"
+                )
+            if min_val < -np.pi or max_val > np.pi:
+                raise ValueError("joint_angle_limit must be between -pi and pi")
+        return self
+
+
+class SegmentConfig(GlobalSegmentConfig):
+    length: float = Field(..., ge=0.0)
+    width: float = Field(..., ge=0.0)
+
+
+class FingerConfig(BaseModel):
+    segments: List[SegmentConfig]
+    defaults: Optional[GlobalSegmentConfig]
+
+    @model_validator(mode="after")
+    def validate_segments(self) -> "FingerConfig":
+        if len(self.segments) == 0:
+            raise ValueError("segments must be non-empty")
+        return self
+
+    @model_validator(mode="after")
+    def validate_defaults(self) -> "FingerConfig":
+        if self.defaults is not None:
+            all_overridable_fields = self.defaults.model_fields_set
+            overrided_fields = self.defaults.model_dump(exclude_none=True).keys()
+            remaining_fields = all_overridable_fields - overrided_fields
+
+            if len(remaining_fields) > 0:
+                raise ValueError(f"fields {remaining_fields} are not overridable")
+
+            for i, segment in enumerate(self.segments):
+                for field in remaining_fields:
+                    if getattr(segment, field, None) is None:
+                        raise ValueError(
+                            f"'{field}' is not set for segment {i}, but is required by defaults"
+                        )
+
+        return self
 
 
 class Segment:
@@ -158,8 +226,11 @@ class Finger:
 
     def get_joint_angles(self):
         angles = []
+        velocities = []
         for motor_idx, motor in enumerate(self.motors):
             angles.append(motor.b.angle - motor.a.angle)
+            velocities.append(motor.b.angular_velocity - motor.a.angular_velocity)
+
         return angles
 
     def get_fingertip_position(self):
@@ -307,3 +378,19 @@ class Robot:
         self.base.add_to_space(space)
         for finger in self.fingers:
             finger.add_to_space(space)
+
+    def get_observation_space(self):
+        """Get the observation space of the robot."""
+        base_obs_size = 6
+        finger_obs_size = sum(
+            f.num_segments + 2
+            for f in self.fingers  # +2 for fingertip position
+        )
+
+        return base_obs_size + finger_obs_size
+
+    def get_action_space(self):
+        """Get the action space of the robot."""
+        base_action_size = 3
+        finger_action_size = sum(f.num_segments for f in self.fingers)
+        return base_action_size + finger_action_size

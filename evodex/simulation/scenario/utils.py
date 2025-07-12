@@ -6,7 +6,6 @@ COLLISION_TYPE_SCENARIO_OBJECT_START = 100
 COLLISION_TYPE_SCENARIO_STATIC_START = 200
 
 
-# --- Helper Functions ---
 def pymunk_to_pygame_coord(point, height, scale=1.0):
     return int(point[0] * scale), int((height - point[1]) * scale)
 

@@ -1,19 +1,13 @@
-import numpy as np
 import pymunk
 import pygame
 import pymunk.pygame_util
-from evodex.simulation.config import (
-    DEFAULT_SIMULATOR_CONFIG,
-    DEFAULT_ROBOT_CONFIG,
-    DEFAULT_SCENARIO_CONFIG,
-)
-from evodex.simulation.robot import Robot
-
-from evodex.simulation.scenario import (
-    ScenarioRegistry,
-)
+from typing import Optional
+from .config import SimulatorConfig
+from .robot import Robot, RobotConfig, Action, Observation
+from .scenario import ScenarioRegistry, ScenarioConfig
 
 
+# TODO: deal with the config and move to a separate file
 class ManualController:
     def __init__(self, config: dict):
         self.config = config
@@ -90,39 +84,33 @@ class ManualController:
         }
 
 
-class Simulation:
+class Simulator:
     def __init__(
         self,
-        robot_config=DEFAULT_ROBOT_CONFIG,
-        scenario_config=DEFAULT_SCENARIO_CONFIG,
-        config=DEFAULT_SIMULATOR_CONFIG,
+        robot_config: RobotConfig,
+        scenario_config: ScenarioConfig,
+        config: SimulatorConfig,
     ):
         self.robot_config = robot_config
         self.scenario_config = scenario_config
         self.sim_config = config
 
-        self.keyboard_mode = False
-        if config.get("keyboard_control", {}).get("enabled", True):
-            self.keyboard_mode = True
-            self.key_move_speed = self.sim_config.get("key_move_speed", 150)
-            self.key_angular_speed = self.sim_config.get("key_angular_speed", 1.5)
-
-            self.base_target_vx = 0.0
-            self.base_target_vy = 0.0
-            self.base_target_omega = 0.0
-            self.angular_mode = False
+        # TODO: integrate keyboard control
 
         pygame.init()
-        self.screen_width = config["simulation"]["screen_width"]
-        self.screen_height = self.sim_config["simulation"]["screen_height"]
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode(
+            (
+                self.sim_config.simulation.screen_width,
+                self.sim_config.simulation.screen_height,
+            )
+        )
         self.clock = pygame.time.Clock()
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         pygame.display.set_caption("Robotic Hand Simulation")
 
         self.space = pymunk.Space()
-        self.space.gravity = self.sim_config["simulation"]["gravity"]
-        self.dt = self.sim_config["simulation"]["dt"]
+        self.space.gravity = self.sim_config.simulation.gravity
+        self.dt = self.sim_config.simulation.dt
 
         self.reset()
 
@@ -142,14 +130,15 @@ class Simulation:
                 self.reset()
                 return
 
-        if not self.keyboard_mode:
-            return
-
-    def reset(self, new_robot_config=None, new_scenario_config=None):
-        if self.keyboard_mode:
-            self.base_target_vx = 0.0
-            self.base_target_vy = 0.0
-            self.base_target_omega = 0.0
+    def reset(
+        self,
+        new_robot_config: Optional[RobotConfig] = None,
+        new_scenario_config: Optional[ScenarioConfig] = None,
+    ):
+        # if self.keyboard_mode:
+        #     self.base_target_vx = 0.0
+        #     self.base_target_vy = 0.0
+        #     self.base_target_omega = 0.0
 
         if self.robot is not None:
             self.robot.remove_from_space(self.space)
@@ -163,19 +152,22 @@ class Simulation:
         if new_scenario_config:
             self.scenario_config = new_scenario_config
 
-        self.robot = Robot(self.robot_config)
+        self.scenario = ScenarioRegistry.create(**self.scenario_config.model_dump())
+
+        # TODO: add start position to the scenario
+        self.robot = Robot(self.scenario_config.start_position, self.robot_config)
         self.robot.add_to_space(self.space)
 
-        self.scenario = ScenarioRegistry.create(**self.scenario_config)
         self.scenario.setup(self.space, self.robot)
 
-    def step(self, actions=None):
+    def step(self, actions: Optional[Action] = None):
         if actions is not None and self.robot:
-            self.robot.apply_actions(**actions)
+            self.robot.act(actions)
 
-        if self.robot and self.keyboard_mode:
-            self.robot.base.body.velocity = (self.base_target_vx, self.base_target_vy)
-            self.robot.base.body.angular_velocity = self.base_target_omega
+        # TODO: integrate keyboard control
+        # if self.robot and self.keyboard_mode:
+        #     self.robot.base.body.velocity = (self.base_target_vx, self.base_target_vy)
+        #     self.robot.base.body.angular_velocity = self.base_target_omega
 
         self.space.step(self.dt)
 

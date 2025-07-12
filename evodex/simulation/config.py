@@ -1,4 +1,7 @@
 import math
+from typing import Tuple
+from pydantic import BaseModel, Field, model_validator
+from enum import Enum
 
 DEFAULT_ROBOT_CONFIG = {
     "base": {
@@ -40,45 +43,88 @@ DEFAULT_SCENARIO_CONFIG = {
     "target_position": (600, 300),  # Default target position for scenarios
 }
 
-DEFAULT_SIMULATOR_CONFIG = {
-    "simulation": {
-        "dt": 1.0 / 60.0,
-        "gravity": (0, 900),
-        "screen_width": 800,
-        "screen_height": 600,
-        "world_scale": 1.0,
-    },
-    "render": {
-        "enabled": True,
-        "fps": 60,
-        "draw_options": {
-            "draw_fps": True,
-            "draw_collision_shapes": False,
-            "draw_constraints": True,
-            "draw_kinematics": True,
-        },
-    },
-    "logging": {
-        "enabled": True,
-        "log_level": "INFO",  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        "log_file": "simulation.log",
-    },
-    "keyboard_control": {
-        "enabled": True,
-        "move_speed": 150,  # Speed for keyboard-controlled base movement (pixels/sec)
-        "angular_speed": 1.5,  # Angular speed for keyboard-controlled base rotation (radians/sec)
-    },
-    "collision": {
-        "ground": 0,
-        "robot_base": 1,
-        "robot_segment_start": 3,
-        "scenario_object_start": 100,
-        "scenario_static_start": 200,
-    },
-    "pymunk_to_pygame_coord": {
-        "scale": 1.0,  # Scale factor for converting Pymunk coordinates to Pygame coordinates
-    },
-    "pygame_to_pymunk_coord": {
-        "scale": 1.0,  # Scale factor for converting Pygame coordinates to Pymunk coordinates
+DEFAULT_SIMULATION_CONFIG = {
+    "dt": 1.0 / 60.0,
+    "gravity": (0, 900),
+    "screen_width": 800,
+    "screen_height": 600,
+}
+
+DEFAULT_RENDER_CONFIG = {
+    "enabled": True,
+    "fps": 60,
+    "draw_options": {
+        "draw_fps": True,
     },
 }
+
+DEFAULT_LOGGING_CONFIG = {
+    "enabled": True,
+    "log_level": "INFO",
+    "log_file": "simulation.log",
+}
+
+DEFAULT_KEYBOARD_CONTROL_CONFIG = {
+    "enabled": True,
+    "move_speed": 150,
+    "angular_speed": 1.5,
+}
+
+
+class LogLevel(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
+class SimulationConfig(BaseModel):
+    dt: float = Field(..., description="Simulation time step")
+    gravity: Tuple[float, float] = Field(..., description="Simulation gravity")
+    screen_width: int = Field(..., description="Simulation screen width")
+    screen_height: int = Field(..., description="Simulation screen height")
+
+
+class DrawOptionsConfig(BaseModel):
+    draw_fps: bool = Field(default=False, description="Draw fps")
+    draw_collision_shapes: bool = Field(
+        default=False, description="Draw collision shapes"
+    )
+    draw_constraints: bool = Field(default=False, description="Draw constraints")
+    draw_kinematics: bool = Field(default=False, description="Draw kinematics")
+
+
+class RenderConfig(BaseModel):
+    enabled: bool = Field(default=True, description="Render enabled")
+    fps: int = Field(default=60, description="Render fps")
+    draw_options: DrawOptionsConfig = Field(
+        default=DrawOptionsConfig(), description="Draw options"
+    )
+
+
+class LoggingConfig(BaseModel):
+    enabled: bool = Field(default=True, description="Logging enabled")
+    log_level: LogLevel = Field(default=LogLevel.INFO, description="Logging level")
+    log_file: str = Field(default="simulation.log", description="Logging file")
+
+
+class KeyboardControlConfig(BaseModel):
+    enabled: bool = Field(default=True, description="Keyboard control enabled")
+    move_speed: float = Field(default=150, description="Keyboard move speed")
+    angular_speed: float = Field(default=1.5, description="Keyboard angular speed")
+
+
+class SimulatorConfig(BaseModel):
+    simulation: SimulationConfig = Field(..., description="Simulation config")
+    render: RenderConfig = Field(..., description="Render config")
+    logging: LoggingConfig = Field(..., description="Logging config")
+    keyboard_control: KeyboardControlConfig = Field(
+        ..., description="Keyboard control config"
+    )
+
+    @model_validator(mode="after")
+    def validate_config(self):
+        if self.keyboard_control.enabled and not self.render.enabled:
+            raise ValueError("Keyboard control is enabled but render is disabled")
+        return self

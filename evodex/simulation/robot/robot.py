@@ -32,7 +32,6 @@ class Robot:
         self.base.body.angular_velocity = action.base.omega
 
         # Apply motor rates to fingers
-        # TODO: check if this is correct
         if len(action.fingers) != self.total_motors:
             return
         for i, finger_action in enumerate(action.fingers):
@@ -55,19 +54,3 @@ class Robot:
         self.base.add_to_space(space)
         for finger in self.fingers:
             finger.add_to_space(space)
-
-    def get_observation_space(self):
-        """Get the observation space of the robot."""
-        base_obs_size = 6
-        finger_obs_size = sum(
-            f.num_segments + 2
-            for f in self.fingers  # +2 for fingertip position
-        )
-
-        return base_obs_size + finger_obs_size
-
-    def get_action_space(self):
-        """Get the action space of the robot."""
-        base_action_size = 3
-        finger_action_size = sum(f.num_segments for f in self.fingers)
-        return base_action_size + finger_action_size

@@ -62,4 +62,10 @@ class Segment:
             mask=MASK_ALL if not self.is_base else MASK_FINGER_BASE,
         )
 
-    # TODO: Add observation function
+    def get_observation(self) -> SegmentObservation:
+        return SegmentObservation(
+            joint_angle=self.body.angle,
+            join_velocity=self.body.angular_velocity,
+            position=self.body.position,
+            velocity=self.body.velocity,
+        )

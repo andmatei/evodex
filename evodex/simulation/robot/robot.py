@@ -5,10 +5,10 @@ from .spaces import Action, Observation
 
 
 class Robot:
-    def __init__(self, config: RobotConfig):
+    def __init__(self, position, config: RobotConfig):
         self.config = config
 
-        self.base = Base(self.config.base)
+        self.base = Base(position, self.config.base)
         self.base.set_finger_count(len(self.config.fingers))
 
         self.fingers: list[Finger] = []
@@ -38,20 +38,11 @@ class Robot:
         for i, finger_action in enumerate(action.fingers):
             self.fingers[i].act(finger_action)
 
-    def get_observation(self):
-        obs = {
-            "base": [
-                self.base.body.position.x,
-                self.base.body.position.y,
-                self.base.body.angle,
-                self.base.body.velocity.x,
-                self.base.body.velocity.y,
-                self.base.body.angular_velocity,
-            ],
-            "fingers": [],
-        }
-
-        return obs
+    def get_observation(self) -> Observation:
+        return Observation(
+            base=self.base.get_observation(),
+            fingers=[finger.get_observation() for finger in self.fingers],
+        )
 
     def remove_from_space(self, space):
         """Remove the robot and its components from the pymunk space."""

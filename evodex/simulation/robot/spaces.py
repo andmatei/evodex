@@ -57,8 +57,11 @@ class BaseObservation(BaseModel):
 
 
 class SegmentObservation(BaseModel):
-    angle: float
-    angular_velocity: float
+    joint_angle: float
+    join_velocity: float
+
+    position: Tuple[float, float]
+    velocity: Tuple[float, float]
 
 
 class FingerObservation(BaseModel):

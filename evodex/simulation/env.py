@@ -46,6 +46,7 @@ class RobotHandEnv(gym.Env):
             dtype=np.float32,
         )
 
+    # TODO: Refactor this to use the spaces module
     def _setup_observation_space(self):
         robot_obs_space = self.simulation.robot.get_observation_space()
         scenario_obs_space = self.simulation.scenario.get_observation(

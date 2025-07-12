@@ -2,7 +2,9 @@ import numpy as np
 import pymunk
 
 from typing import List
-from .config import FingerConfig, SegmentConfig
+
+from evodex.simulation.robot.spaces import FingerObservation
+from .config import FingerConfig
 from .segment import Segment
 from .constants import FINGER_GROUP_START
 
@@ -86,18 +88,16 @@ class Finger:
         for motor, rate in zip(self.motors, rates):
             motor.rate = rate
 
-    # TODO: Refactor this to return an observation and cascade it up
     def get_observation(self):
-        angles = []
-        velocities = []
-        for motor_idx, motor in enumerate(self.motors):
-            angles.append(motor.b.angle - motor.a.angle)
-            velocities.append(motor.b.angular_velocity - motor.a.angular_velocity)
-
-        return angles
+        segments_obs = [segment.get_observation() for segment in self.segments]
+        fingertip_obs = self.get_fingertip_position()
+        return FingerObservation(
+            segments=segments_obs,
+            fingertip_position=fingertip_obs,
+        )
 
     def get_fingertip_position(self):
-        return self.segments[-1].get_tip_position() if self.segments else None
+        return self.segments[-1].get_tip_position()
 
     def remove_from_space(self, space):
         """Remove the finger and its segments from the pymunk space."""

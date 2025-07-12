@@ -1,46 +1,54 @@
 import pymunk
+
+from typing import List, Tuple
+from .config import BaseConfig
 from .constants import (
     CAT_ROBOT_BASE,
     MASK_ROBOT_BASE,
 )
+from evodex.simulation.robot.spaces import BaseObservation
+
 
 class Base:
-    def __init__(self, config):
-        self.width = config["width"]
-        self.height = config["height"]
-        self.initial_position = config.get("initial_position", (100, 100))
+    def __init__(self, position, config: BaseConfig):
+        self.config = config
 
-        mass = config.get("mass", 1.0)
-        moment = pymunk.moment_for_box(mass, (self.width, self.height))
+        moment = pymunk.moment_for_box(
+            self.config.mass, (self.config.width, self.config.height)
+        )
         self.body = pymunk.Body(
-            mass=mass, moment=moment, body_type=pymunk.Body.KINEMATIC
+            mass=self.config.mass, moment=moment, body_type=pymunk.Body.KINEMATIC
         )
 
-        self.body.position = self.initial_position
+        self.body.position = position
         self.body.velocity = (0, 0)
         self.body.angular_velocity = 0
-        self.shape = pymunk.Poly.create_box(self.body, (self.width, self.height))
+        self.shape = pymunk.Poly.create_box(
+            self.body, (self.config.width, self.config.height)
+        )
 
-        self.shape.elasticity = 0.1
-        self.shape.friction = 0.9
         self.shape.filter = pymunk.ShapeFilter(
             group=0,
             categories=CAT_ROBOT_BASE,
             mask=MASK_ROBOT_BASE,
         )
 
-        self.finger_attachment_points_local = []
+        self.finger_attachment_points_local: List[Tuple[float, float]] = []
 
     def set_finger_count(self, num_fingers):
         self.finger_attachment_points_local = []
         if num_fingers == 0:
             return
         for i in range(num_fingers):
-            local_x = self.width / 2
+            local_x = self.config.width / 2
             vertical_spacing = (
-                self.height / (num_fingers - 1) if num_fingers > 1 else self.width
+                self.config.height / (num_fingers - 1)
+                if num_fingers > 1
+                else self.config.width
             )
-            local_y = -self.height / 2 + i * vertical_spacing if num_fingers > 1 else 0
+            local_y = (
+                -self.config.height / 2 + i * vertical_spacing if num_fingers > 1 else 0
+            )
             self.finger_attachment_points_local.append((local_x, local_y))
 
     def remove_from_space(self, space):
@@ -54,3 +62,11 @@ class Base:
     def add_to_space(self, space):
         """Add the base to the pymunk space."""
         space.add(self.body, self.shape)
+
+    def get_observation(self) -> BaseObservation:
+        return BaseObservation(
+            position=self.body.position,
+            velocity=self.body.velocity,
+            angle=self.body.angle,
+            angular_velocity=self.body.angular_velocity,
+        )

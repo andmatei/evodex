@@ -1,42 +1,42 @@
 from .finger import Finger
 from .base import Base
 from .config import RobotConfig
+from .spaces import Action, Observation
+
 
 class Robot:
-    def __init__(self, config):
+    def __init__(self, config: RobotConfig):
         self.config = config
 
-        self.base_config = config["base"]
-        self.base = Base(self.base_config)
-        self.base.set_finger_count(len(config["fingers"]))
+        self.base = Base(self.config.base)
+        self.base.set_finger_count(len(self.config.fingers))
 
-        self.fingers = []
-        for i, f_config in enumerate(config["fingers"]):
+        self.fingers: list[Finger] = []
+        for i, finger_config in enumerate(self.config.fingers):
             attach_point = self.base.finger_attachment_points_local[i]
             finger = Finger(
                 i,
                 self.base.body,
                 attach_point,
-                f_config,
+                finger_config,
             )
             self.fingers.append(finger)
 
-        self.num_motors_per_finger = [f.num_segments for f in self.fingers]
+        self.num_motors_per_finger: list[int] = [f.num_segments for f in self.fingers]
         self.total_motors = sum(self.num_motors_per_finger)
 
-    def apply_actions(self, vx, vy, omega, motor_rates):
+    def act(self, action: Action):
         """Apply actions to the robot base and its fingers."""
         # Apply base movement
-        self.base.body.velocity = vx, vy
-        self.base.body.angular_velocity = omega
+        self.base.body.velocity = action.base.velocity
+        self.base.body.angular_velocity = action.base.omega
 
         # Apply motor rates to fingers
-        if len(motor_rates) != self.total_motors:
+        # TODO: check if this is correct
+        if len(action.fingers) != self.total_motors:
             return
-        action_idx = 0
-        for finger, num_motors in zip(self.fingers, self.num_motors_per_finger):
-            finger.set_motor_rates(motor_rates[action_idx : action_idx + num_motors])
-            action_idx += num_motors
+        for i, finger_action in enumerate(action.fingers):
+            self.fingers[i].act(finger_action)
 
     def get_observation(self):
         obs = {
@@ -50,13 +50,6 @@ class Robot:
             ],
             "fingers": [],
         }
-        for finger in self.fingers:
-            finger_obs = finger.get_joint_angles()
-            fingertip_pos = finger.get_fingertip_position()
-            finger_obs.extend(
-                [fingertip_pos.x, fingertip_pos.y] if fingertip_pos else [0, 0]
-            )
-            obs["fingers"].append(finger_obs)
 
         return obs
 

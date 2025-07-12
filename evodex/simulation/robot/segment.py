@@ -1,5 +1,9 @@
 import pymunk
 
+from evodex.simulation.robot.spaces import SegmentObservation
+
+from .config import SegmentConfig
+from .spaces import SegmentObservation
 from .constants import (
     CAT_FINGER_BASE,
     CAT_FINGER_SEGMENT,
@@ -12,32 +16,31 @@ class Segment:
     def __init__(
         self,
         position,
-        length,
-        width,
+        config: SegmentConfig,
         angle=0.0,
         is_fingertip=False,
         is_base=False,
-        mass=1.0,
     ):
-        self.length = length
-        self.width = width
+        self.config = config
         self.is_fingertip = is_fingertip
         self.is_base = is_base
 
-        moment = pymunk.moment_for_box(mass, (length, width))
-        self.body = pymunk.Body(mass, moment)
+        moment = pymunk.moment_for_box(
+            self.config.mass, (self.config.length, self.config.width)
+        )
+        self.body = pymunk.Body(self.config.mass, moment)
         self.body.position = position
         self.body.angle = angle
 
-        self.shape = pymunk.Poly.create_box(self.body, (length, width))
-        self.shape.mass = mass
-        self.shape.elasticity = 0.3
-        self.shape.friction = 0.8
+        self.shape = pymunk.Poly.create_box(
+            self.body, (self.config.length, self.config.width)
+        )
+        self.shape.mass = self.config.mass
 
     def get_tip_position(self):
         """Get the position of the tip of the segment in world coordinates."""
 
-        local_tip = (self.length / 2, 0)
+        local_tip = (self.config.length / 2, 0)
         return self.body.local_to_world(local_tip)
 
     def remove_from_space(self, space):
@@ -58,3 +61,5 @@ class Segment:
             categories=CAT_FINGER_SEGMENT if not self.is_base else CAT_FINGER_BASE,
             mask=MASK_ALL if not self.is_base else MASK_FINGER_BASE,
         )
+
+    # TODO: Add observation function

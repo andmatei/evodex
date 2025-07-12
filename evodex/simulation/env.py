@@ -52,10 +52,10 @@ class RobotHandEnv(gym.Env):
             self.simulation.robot
         ).shape
 
-        combined_obs_sample = sce
-        self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=combined_obs_sample.shape, dtype=np.float32
-        )
+        combined_obs_sample = {
+            "robot": robot_obs_space,
+            "scenario": scenario_obs_space,
+        }
 
     def step(self, action):
         self.simulation.step(action)
@@ -66,7 +66,9 @@ class RobotHandEnv(gym.Env):
         scenario_observation = self.simulation.scenario.get_observation(
             self.simulation.robot
         )
-        observation = np.concatenate((robot_observation, scenario_observation))
+        observation = {
+            "robot": robot_observation,
+        }
 
         reward = self.simulation.scenario.get_reward(
             self.simulation.robot, action, scenario_observation
@@ -119,7 +121,9 @@ class RobotHandEnv(gym.Env):
         scenario_observation = self.simulation.scenario.get_observation(
             self.simulation.robot
         )
-        observation = np.concatenate((robot_observation, scenario_observation))
+        observation = {
+            "robot": robot_observation,
+        }
         return observation, {}
 
     def render(self):

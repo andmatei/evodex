@@ -1,62 +1,51 @@
 import numpy as np
 import pymunk
 
+from typing import List
+from .config import FingerConfig, SegmentConfig
 from .segment import Segment
-from .constants import (
-    FINGER_GROUP_START
-)
+from .constants import FINGER_GROUP_START
 
 
 class Finger:
-    def __init__(self, index, base, attach_point, config):
+    def __init__(self, index, base, attach_point, config: FingerConfig):
         self.segments = []
         self.joints = []
         self.motors = []
         self.index = index
         self.config = config
 
-        self.num_segments = config["num_segments"]
+        self.num_segments = len(config.segments)
         self._build(base, attach_point)
 
     def _build(self, base, attach_point):
         """Build the finger segments and joints based on the configuration."""
         prev_body = base
         current_attach_point = base.local_to_world(attach_point)
-        for i in range(self.num_segments):
-            segment_length = (
-                self.config["segment_lengths"][i]
-                if "segment_lengths" in self.config
-                else self.config["segment_length"]
-            )
-            segment_width = (
-                self.config["segment_widths"][i]
-                if "segment_widths" in self.config
-                else self.config["segment_width"]
-            )
+        for i, segment_config in enumerate(self.config.segments):
             is_fingertip = i == self.num_segments - 1
             if_base = i == 0
 
             if i == 0:
                 initial_angle = base.angle
-                segment_pos_x = current_attach_point[0] + (segment_length / 2) * np.cos(
-                    initial_angle
-                )
-                segment_pos_y = current_attach_point[1] + (segment_length / 2) * np.sin(
-                    initial_angle
-                )
+                segment_pos_x = current_attach_point[0] + (
+                    segment_config.length / 2
+                ) * np.cos(initial_angle)
+                segment_pos_y = current_attach_point[1] + (
+                    segment_config.length / 2
+                ) * np.sin(initial_angle)
             else:
                 prev_segment_tip = self.segments[-1].get_tip_position()
                 initial_angle = self.segments[-1].body.angle
-                segment_pos_x = prev_segment_tip[0] + (segment_length / 2) * np.cos(
-                    initial_angle
-                )
-                segment_pos_y = prev_segment_tip[1] + (segment_length / 2) * np.sin(
-                    initial_angle
-                )
+                segment_pos_x = prev_segment_tip[0] + (
+                    segment_config.length / 2
+                ) * np.cos(initial_angle)
+                segment_pos_y = prev_segment_tip[1] + (
+                    segment_config.length / 2
+                ) * np.sin(initial_angle)
             segment = Segment(
                 (segment_pos_x, segment_pos_y),
-                segment_length,
-                segment_width,
+                segment_config,
                 angle=initial_angle,
                 is_fingertip=is_fingertip,
                 is_base=if_base,
@@ -78,28 +67,27 @@ class Finger:
                 anchor_b_local_for_joint,
             )
 
-            min_angle_rel = self.config["joint_angle_limit_min"]
-            max_angle_rel = self.config["joint_angle_limit_max"]
+            min_angle_rel = segment_config.joint_angle_limit[0]
+            max_angle_rel = segment_config.joint_angle_limit[1]
             limit_joint = pymunk.RotaryLimitJoint(
                 prev_body, segment.body, min_angle_rel, max_angle_rel
             )
             self.joints.extend([joint, limit_joint])
 
             motor = pymunk.SimpleMotor(prev_body, segment.body, 0)
-            motor.max_force = self.config.get("motor_max_force", 5e7)
             self.motors.append(motor)
 
             prev_body = segment.body
             current_attach_point = segment.get_tip_position()
 
-    def set_motor_rates(self, rates):
+    def act(self, rates: List[float]):
         if len(rates) != len(self.motors):
             return
         for motor, rate in zip(self.motors, rates):
             motor.rate = rate
 
-    #TODO: Refactor this to return an observation and cascade it up
-    def get_joint_angles(self):
+    # TODO: Refactor this to return an observation and cascade it up
+    def get_observation(self):
         angles = []
         velocities = []
         for motor_idx, motor in enumerate(self.motors):

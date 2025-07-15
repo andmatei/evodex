@@ -1,14 +1,30 @@
-from abc import ABC, abstractmethod
 import numpy as np
 import pymunk
 
+from abc import ABC, abstractmethod
+from typing import Type, Optional, TypeVar, Generic
+from pydantic import BaseModel, Field
+from typing import Tuple
 
-class Scenario(ABC):
-    def __init__(self, **config):
+
+class ScreenConfig(BaseModel):
+    width: int = Field(..., description="Screen width")
+    height: int = Field(..., description="Screen height")
+
+
+class ScenarioConfig(BaseModel):
+    name: str = Field(..., description="Scenario name")
+    screen: ScreenConfig = Field(..., description="Screen config")
+    start_position: Tuple[float, float] = Field(..., description="Start position")
+
+
+C = TypeVar("C", bound=ScenarioConfig)
+
+
+class Scenario(Generic[C], ABC):
+    def __init__(self, config: C):
         self.config = config
-        self.screen_width = config["screen_width"]
-        self.screen_height = config["screen_height"]
-        self.objects = []
+        self.objects: list[dict] = []
 
     @abstractmethod
     def setup(self, space, robot):
@@ -22,10 +38,12 @@ class Scenario(ABC):
     def is_terminated(self, robot, observation, current_step, max_steps):
         pass
 
+    # TODO: Return a Pydantic model for the observation
     @abstractmethod
     def get_observation(self, robot) -> np.ndarray:
         pass
 
+    # TODO: Add types to methods
     @abstractmethod
     def render(self, screen):
         pass
@@ -47,9 +65,9 @@ class Scenario(ABC):
         self.objects = []
 
 
-class GroundScenario(Scenario):
-    def __init__(self, **sim_config):
-        super().__init__(**sim_config)
+class GroundScenario(Scenario[C], ABC):
+    def __init__(self, config: C):
+        super().__init__(config)
         self.ground_shape = None
 
     @abstractmethod
@@ -58,8 +76,8 @@ class GroundScenario(Scenario):
         ground_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         ground_shape = pymunk.Segment(
             ground_body,
-            (0, self.screen_height - 10),
-            (self.screen_width, self.screen_height - 10),
+            (0, self.config.screen.height - 10),
+            (self.config.screen.width, self.config.screen.height - 10),
             5,
         )
         ground_shape.friction = 1.0
@@ -74,7 +92,7 @@ class GroundScenario(Scenario):
 
 
 class ScenarioRegistry:
-    _registry = {}
+    _registry: dict[str, Type[Scenario]] = {}
 
     def __init__(self):
         raise RuntimeError(
@@ -87,16 +105,17 @@ class ScenarioRegistry:
         return cls.instance
 
     @classmethod
-    def register(cls, scenario_class):
+    def register(cls, scenario_class: Type[Scenario]) -> Type[Scenario]:
         cls._registry[scenario_class.__name__] = scenario_class
+        return scenario_class
 
     @classmethod
-    def get(cls, name):
+    def get(cls, name: str) -> Optional[Type[Scenario]]:
         return cls._registry.get(name, None)
 
     @classmethod
-    def create(cls, name, **kwargs) -> Scenario:
+    def create(cls, name: str, config: ScenarioConfig) -> Scenario:
         scenario_class = cls.get(name)
         if scenario_class is None:
             raise ValueError(f"Scenario class '{name}' not found in registry.")
-        return scenario_class(**kwargs)
+        return scenario_class(config)

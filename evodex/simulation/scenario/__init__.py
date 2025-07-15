@@ -1,2 +1,4 @@
 from .core import Scenario, ScenarioRegistry
-from .config import ScenarioConfig
+
+# Import scenarios to be registered
+from . import move_cube_to_target

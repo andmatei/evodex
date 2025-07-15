@@ -2,36 +2,58 @@ import numpy as np
 import pymunk
 import pygame
 
-from .core import GroundScenario, ScenarioRegistry
+from pydantic import Field
+from typing import Tuple, Optional
+
+from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_SCENARIO_OBJECT_START, pymunk_to_pygame_coord
 
 
-class MoveCubeToTargetScenario(GroundScenario):
-    def __init__(self, **config):
-        super().__init__(**config)
+class MoveCubeToTargetScenarioConfig(ScenarioConfig):
+    target_pos: Optional[Tuple[float, float]] = Field(
+        None, description="Target position"
+    )
+    success_radius: float = Field(..., description="Success radius")
+    cube_size: Tuple[float, float] = Field(..., description="Cube size")
+    cube_initial_pos: Optional[Tuple[float, float]] = Field(
+        None, description="Cube initial position"
+    )
+
+
+@ScenarioRegistry.register
+class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
+    """
+    Scenario where a cube is moved to a target position.
+    The cube is initialized at a random position above the ground.
+    The target position is also initialized randomly within the screen bounds.
+    The scenario is considered successful when the cube is within a certain radius of the target position.
+    """
+
+    def __init__(self, config: MoveCubeToTargetScenarioConfig):
+        super().__init__(config)
         self.cube_body = None
         self.cube_shape = None
 
-        if "target_pos" in config:
-            self.target_pos = np.array(config["target_pos"])
+        if self.config.target_pos is None:
+            self.target_pos = np.array(self.config.target_pos)
         else:
             # Initializing target position randomly within the screen bounds
             self.target_pos = np.random.uniform(
                 low=[0, 0],
-                high=[self.screen_width, self.screen_height],
+                high=[self.config.screen.width, self.config.screen.height],
             )
 
-        self.success_threshold = config.get("success_radius", 20)
-        self.cube_size = config.get("cube_size", (20, 20))
+        self.success_threshold = self.config.success_radius
+        self.cube_size = self.config.cube_size
 
-        if "cube_initial_pos" in config:
-            self.cube_initial_pos = config["cube_initial_pos"]
+        if self.config.cube_initial_pos is not None:
+            self.cube_initial_pos = self.config.cube_initial_pos
         else:
             # Default initial position for the cube
             self.cube_initial_pos = (
                 np.random.uniform(
                     low=self.cube_size[0] / 2,
-                    high=self.screen_width - self.cube_size[0] / 2,
+                    high=self.config.screen.width - self.cube_size[0] / 2,
                 ),
                 self.cube_size[1] / 2 + 10,  # Slightly above the ground
             )
@@ -100,7 +122,7 @@ class MoveCubeToTargetScenario(GroundScenario):
 
     def render(self, screen):
         target_center_pygame = pymunk_to_pygame_coord(
-            self.target_pos, self.screen_height
+            self.target_pos, self.config.screen.height
         )
         pygame.draw.circle(
             screen,
@@ -109,7 +131,3 @@ class MoveCubeToTargetScenario(GroundScenario):
             self.success_threshold,
             2,
         )
-
-
-# Register the scenario
-ScenarioRegistry.register(MoveCubeToTargetScenario)

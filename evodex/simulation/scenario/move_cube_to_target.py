@@ -7,6 +7,9 @@ from typing import Tuple, Optional
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_SCENARIO_OBJECT_START, pymunk_to_pygame_coord
+from .types import Observation
+
+from evodex.simulation.robot import Robot, Action
 
 
 class MoveCubeToTargetScenarioConfig(ScenarioConfig):
@@ -31,8 +34,8 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
 
     def __init__(self, config: MoveCubeToTargetScenarioConfig):
         super().__init__(config)
-        self.cube_body = None
-        self.cube_shape = None
+        self.cube_body: Optional[pymunk.Body] = None
+        self.cube_shape: Optional[pymunk.Shape] = None
 
         if self.config.target_pos is None:
             self.target_pos = np.array(self.config.target_pos)
@@ -58,7 +61,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
                 self.cube_size[1] / 2 + 10,  # Slightly above the ground
             )
 
-    def setup(self, space, robot):
+    def setup(self, space: pymunk.Space, robot: Robot) -> None:
         super().setup(space, robot)
 
         mass = 1.0
@@ -79,23 +82,21 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             }
         )
 
-        return self.objects
-
-    # TODO: Do we need observation?
-    def get_reward(self, robot, action, observation):
+    def get_reward(self, robot: Robot, action: Action) -> float:
         reward = 0.0
         if self.cube_body:
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
             dist_to_target = np.linalg.norm(cube_pos - self.target_pos)
-            reward -= dist_to_target * 0.01
+            reward -= float(dist_to_target * 0.01)
             if dist_to_target < self.success_threshold:
                 reward += 100.0
-        action_penalty = np.sum(np.square(action)) * 0.001
-        reward -= action_penalty
+
+        # TODO: Add action penalty
+        # action_penalty = np.sum(np.square(action)) * 0.001
+        # reward -= action_penalty
         return reward
 
-    # TODO: Do we need observation?
-    def is_terminated(self, robot, observation, current_step, max_steps):
+    def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:
         if self.cube_body:
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
             if np.linalg.norm(cube_pos - self.target_pos) < self.success_threshold:
@@ -103,22 +104,16 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
                 return True
         return False
 
-    def get_observation(self, robot):
-        obs = []
-        if self.cube_body:
-            obs.extend(
-                [
-                    self.cube_body.position.x,
-                    self.cube_body.position.y,
-                    self.cube_body.angle,
-                ]
-            )
-        else:
-            obs.extend([0.0] * 3)
-        return np.array(obs, dtype=np.float32)
+    def get_observation(self, robot: Robot) -> Observation:
+        if not self.cube_body:
+            raise ValueError("Scenario is not initialized.")
 
-    def get_goal(self):
-        return self.target_pos
+        return Observation(
+            velocity=self.cube_body.velocity.length,
+            position=(self.cube_body.position.x, self.cube_body.position.y),
+            angle=self.cube_body.angle,
+            angular_velocity=self.cube_body.angular_velocity,
+        )
 
     def render(self, screen):
         target_center_pygame = pymunk_to_pygame_coord(

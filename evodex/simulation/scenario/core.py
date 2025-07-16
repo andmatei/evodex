@@ -1,10 +1,14 @@
-import numpy as np
 import pymunk
+import pygame
 
 from abc import ABC, abstractmethod
 from typing import Type, Optional, TypeVar, Generic
 from pydantic import BaseModel, Field
 from typing import Tuple
+
+from .types import Observation
+
+from evodex.simulation.robot import Robot, Action
 
 
 class ScreenConfig(BaseModel):
@@ -27,28 +31,27 @@ class Scenario(Generic[C], ABC):
         self.objects: list[dict] = []
 
     @abstractmethod
-    def setup(self, space, robot):
+    def setup(self, space: pymunk.Space, robot: Robot) -> None:
         pass
 
     @abstractmethod
-    def get_reward(self, robot, action, observation):
+    def get_reward(self, robot: Robot, action: Action) -> float:
         pass
 
     @abstractmethod
-    def is_terminated(self, robot, observation, current_step, max_steps):
+    def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:
         pass
 
-    # TODO: Return a Pydantic model for the observation
     @abstractmethod
-    def get_observation(self, robot) -> np.ndarray:
+    def get_observation(self, robot) -> Observation:
         pass
 
-    # TODO: Add types to methods
     @abstractmethod
-    def render(self, screen):
+    def render(self, screen: pygame.Surface) -> None:
         pass
 
-    def is_truncated(self, robot, observation, current_step, max_steps):
+    # TODO: Move this functionality to the simulation class that takes care of the steps
+    def is_truncated(self, robot, observation, current_step, max_steps) -> bool:
         return current_step >= max_steps
 
     def clear_from_space(self, space):
@@ -71,7 +74,7 @@ class GroundScenario(Scenario[C], ABC):
         self.ground_shape = None
 
     @abstractmethod
-    def setup(self, space, robot):
+    def setup(self, space: pymunk.Space, robot: Robot) -> None:
         # Create a static ground segment
         ground_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         ground_shape = pymunk.Segment(
@@ -83,6 +86,7 @@ class GroundScenario(Scenario[C], ABC):
         ground_shape.friction = 1.0
         space.add(ground_body, ground_shape)
 
+        # TODO: Add a schema to add only this types of dictionary
         self.objects.append(
             {
                 "body": ground_body,

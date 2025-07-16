@@ -20,6 +20,11 @@ def scale(
         domain[1] - domain[0]
     )
 
+def in_interval(
+    value: float, interval: Tuple[float, float]
+) -> bool:
+    return interval[0] <= value <= interval[1]
+
 
 class Scale(BaseModel):
     domain: Tuple[float, float] = Field(
@@ -30,7 +35,7 @@ class Scale(BaseModel):
         ..., description="Target scale range for values"
     )
 
-    def scale(self, value: float, inverse: bool = False):
+    def rescale(self, value: float, normalise: bool = False):
         """
         Scales a value from the domain to the target range or vice versa if inverse is True.
 
@@ -41,7 +46,7 @@ class Scale(BaseModel):
         Returns:
             float: The scaled value.
         """
-        if inverse:
+        if normalise:
             return scale(value, self.domain, self.target)
         else:
             return scale(value, self.target, self.domain)

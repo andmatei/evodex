@@ -74,6 +74,9 @@ class FingerConfig(BaseModel):
                 segment.setdefault(key, value)
 
         return data
+    
+    def __len__(self) -> int:
+        return len(self.segments)
 
 
 class BaseConfig(BaseModel):
@@ -85,3 +88,6 @@ class BaseConfig(BaseModel):
 class RobotConfig(BaseModel):
     base: BaseConfig
     fingers: List[FingerConfig]
+
+    def __len__(self) -> int:
+        return len(self.fingers)

@@ -19,7 +19,7 @@ class ScreenConfig(BaseModel):
 class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
     screen: ScreenConfig = Field(..., description="Screen config")
-    start_position: Tuple[float, float] = Field(..., description="Start position")
+    robot_start_position: Tuple[float, float] = Field(..., description="Start position")
 
 
 C = TypeVar("C", bound=ScenarioConfig)

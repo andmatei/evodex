@@ -38,38 +38,34 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_shape: Optional[pymunk.Shape] = None
 
         if self.config.target_pos is None:
-            self.target_pos = np.array(self.config.target_pos)
-        else:
-            # Initializing target position randomly within the screen bounds
             self.target_pos = np.random.uniform(
                 low=[0, 0],
                 high=[self.config.screen.width, self.config.screen.height],
             )
-
-        self.success_threshold = self.config.success_radius
-        self.cube_size = self.config.cube_size
+        else:
+            self.target_pos = np.array(self.config.target_pos)
 
         if self.config.cube_initial_pos is not None:
-            self.cube_initial_pos = self.config.cube_initial_pos
+            self.cube_initial_pos = np.array(self.config.cube_initial_pos)
         else:
             # Default initial position for the cube
-            self.cube_initial_pos = (
+            self.cube_initial_pos = np.array([
                 np.random.uniform(
-                    low=self.cube_size[0] / 2,
-                    high=self.config.screen.width - self.cube_size[0] / 2,
+                    low=self.config.cube_size[0] / 2,
+                    high=self.config.screen.width - self.config.cube_size[0] / 2,
                 ),
-                self.cube_size[1] / 2 + 10,  # Slightly above the ground
-            )
+                self.config.cube_size[1] / 2 + 10,  # Slightly above the ground
+            ])
 
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
         super().setup(space, robot)
 
         mass = 1.0
-        moment = pymunk.moment_for_box(mass, self.cube_size)
+        moment = pymunk.moment_for_box(mass, self.config.cube_size)
 
         self.cube_body = pymunk.Body(mass, moment)
         self.cube_body.position = self.cube_initial_pos
-        self.cube_shape = pymunk.Poly.create_box(self.cube_body, self.cube_size)
+        self.cube_shape = pymunk.Poly.create_box(self.cube_body, self.config.cube_size)
         self.cube_shape.friction = 0.7
         self.cube_shape.elasticity = 0.3
         self.cube_shape.collision_type = COLLISION_TYPE_SCENARIO_OBJECT_START + 1
@@ -88,7 +84,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
             dist_to_target = np.linalg.norm(cube_pos - self.target_pos)
             reward -= float(dist_to_target * 0.01)
-            if dist_to_target < self.success_threshold:
+            if dist_to_target < self.config.success_radius:
                 reward += 100.0
 
         # TODO: Add action penalty
@@ -99,7 +95,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
     def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:
         if self.cube_body:
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
-            if np.linalg.norm(cube_pos - self.target_pos) < self.success_threshold:
+            if np.linalg.norm(cube_pos - self.target_pos) < self.config.success_radius:
                 print("MoveCubeScenario: Target reached!")
                 return True
         return False

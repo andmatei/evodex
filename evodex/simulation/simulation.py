@@ -2,6 +2,8 @@ import pymunk
 import pygame
 import pymunk.pygame_util
 from typing import Optional
+
+from evodex.simulation.scenario.core import Scenario
 from .config import SimulatorConfig
 from .robot import Robot, RobotConfig, Action, Observation
 from .scenario import ScenarioRegistry, ScenarioConfig
@@ -85,6 +87,9 @@ class ManualController:
 
 
 class Simulator:
+    robot: Optional[Robot] = None
+    scenario: Optional[Scenario] = None
+
     def __init__(
         self,
         robot_config: RobotConfig,
@@ -155,7 +160,7 @@ class Simulator:
         self.scenario = ScenarioRegistry.create(**self.scenario_config.model_dump())
 
         # TODO: add start position to the scenario
-        self.robot = Robot(self.scenario_config.start_position, self.robot_config)
+        self.robot = Robot(self.scenario_config.robot_start_position, self.robot_config)
         self.robot.add_to_space(self.space)
 
         self.scenario.setup(self.space, self.robot)

@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple
 from pydantic import BaseModel, Field
 
 def in_interval(

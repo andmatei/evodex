@@ -1,14 +1,15 @@
 import pytest
 
-from evodex.simulation.robot.spaces import Action, BaseAction, ActionScale
-from evodex.simulation.robot.utils import Scale
+from evodex.simulation.scale import ActionScaleConfig
+from evodex.simulation.robot.spaces import Action, BaseAction
+from evodex.simulation.utils import Scale
 
-
+# TODO: Fix the tests for NormalizedScale and ActionScaler
 class TestActionScaling:
     @pytest.fixture
-    def action_scale_config(self) -> ActionScale:
+    def action_scale_config(self) -> ActionScaleConfig:
         """Provides a valid ActionScale configuration for tests."""
-        return ActionScale(
+        return ActionScaleConfig(
             velocity=(
                 Scale(target=(-0.5, 0.5)),  # vx
                 Scale(target=(-0.2, 0.2)),  # vy

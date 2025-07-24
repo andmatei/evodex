@@ -107,7 +107,7 @@ def test_create_scenario_success() -> None:
             width=800,  # Mock screen width
             height=600,  # Mock screen height
         ),
-        start_position=(0, 0),  # Mock start position
+        robot_start_position=(0, 0),  # Mock start position
     )
 
     # WHEN we create the scenario using the registry
@@ -135,7 +135,7 @@ def test_create_scenario_not_found_raises_error() -> None:
             config=ScenarioConfig(
                 name="test",
                 screen=ScreenConfig(width=800, height=600),
-                start_position=(0, 0),
+                robot_start_position=(0, 0),
             ),
         )
 

@@ -86,6 +86,7 @@ class ManualController:
         }
 
 
+# TODO: Separate the pygame from the main logic, move the main logic inside the env
 class Simulator:
     robot: Optional[Robot] = None
     scenario: Optional[Scenario] = None
@@ -140,11 +141,6 @@ class Simulator:
         new_robot_config: Optional[RobotConfig] = None,
         new_scenario_config: Optional[ScenarioConfig] = None,
     ):
-        # if self.keyboard_mode:
-        #     self.base_target_vx = 0.0
-        #     self.base_target_vy = 0.0
-        #     self.base_target_omega = 0.0
-
         if self.robot is not None:
             self.robot.remove_from_space(self.space)
 
@@ -159,7 +155,6 @@ class Simulator:
 
         self.scenario = ScenarioRegistry.create(**self.scenario_config.model_dump())
 
-        # TODO: add start position to the scenario
         self.robot = Robot(self.scenario_config.robot_start_position, self.robot_config)
         self.robot.add_to_space(self.space)
 

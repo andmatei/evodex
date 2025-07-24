@@ -28,7 +28,7 @@ C = TypeVar("C", bound=ScenarioConfig)
 class Scenario(Generic[C], ABC):
     def __init__(self, config: C):
         self.config = config
-        self.objects: list[dict] = []
+        self.objects: list[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
 
     @abstractmethod
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
@@ -50,18 +50,14 @@ class Scenario(Generic[C], ABC):
     def render(self, screen: pygame.Surface) -> None:
         pass
 
-    # TODO: Move this functionality to the simulation class that takes care of the steps
-    def is_truncated(self, robot, observation, current_step, max_steps) -> bool:
-        return current_step >= max_steps
-
     def clear_from_space(self, space):
         for item in reversed(self.objects):
-            if isinstance(item, dict) and "body" in item and "shape" in item:
-                if item["shape"] in space.shapes:
-                    space.remove(item["shape"])
-                if item["body"] in space.bodies:
-                    if item["body"] is not space.static_body:
-                        space.remove(item["body"])
+            if isinstance(item, pymunk.Body):
+                if item in space.bodies:
+                    space.remove(item)
+            elif isinstance(item, pymunk.Shape):
+                if item in space.shapes:
+                    space.remove(item)
             elif isinstance(item, pymunk.Constraint):
                 if item in space.constraints:
                     space.remove(item)
@@ -86,13 +82,7 @@ class GroundScenario(Scenario[C], ABC):
         ground_shape.friction = 1.0
         space.add(ground_body, ground_shape)
 
-        # TODO: Add a schema to add only this types of dictionary
-        self.objects.append(
-            {
-                "body": ground_body,
-                "shape": ground_shape,
-            }
-        )
+        self.objects.extend([ground_body, ground_shape])
 
 
 class ScenarioRegistry:

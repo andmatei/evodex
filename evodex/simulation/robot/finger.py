@@ -11,9 +11,9 @@ from .constants import FINGER_GROUP_START
 
 class Finger:
     def __init__(self, index, base, attach_point, config: FingerConfig):
-        self.segments = []
-        self.joints = []
-        self.motors = []
+        self.segments: List[Segment] = []
+        self.joints: List[pymunk.constraints.PivotJoint] = []
+        self.motors: List[pymunk.SimpleMotor] = []
         self.index = index
         self.config = config
 

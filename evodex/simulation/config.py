@@ -3,6 +3,8 @@ from typing import Tuple
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
+from evodex.simulation.utils import NormalizedScale
+
 DEFAULT_ROBOT_CONFIG = {
     "base": {
         "width": 30,
@@ -128,3 +130,11 @@ class SimulatorConfig(BaseModel):
         if self.keyboard_control.enabled and not self.render.enabled:
             raise ValueError("Keyboard control is enabled but render is disabled")
         return self
+
+
+class ActionScaleConfig(BaseModel):
+    velocity: Tuple[NormalizedScale, NormalizedScale] = Field(
+        ..., description="Scale for base velocity in x and y directions"
+    )
+    omega: NormalizedScale = Field(..., description="Scale for base angular velocity")
+    motor_rate: NormalizedScale = Field(..., description="Scale for finger motor rates")

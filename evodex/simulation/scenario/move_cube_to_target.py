@@ -49,13 +49,15 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             self.cube_initial_pos = np.array(self.config.cube_initial_pos)
         else:
             # Default initial position for the cube
-            self.cube_initial_pos = np.array([
-                np.random.uniform(
-                    low=self.config.cube_size[0] / 2,
-                    high=self.config.screen.width - self.config.cube_size[0] / 2,
-                ),
-                self.config.cube_size[1] / 2 + 10,  # Slightly above the ground
-            ])
+            self.cube_initial_pos = np.array(
+                [
+                    np.random.uniform(
+                        low=self.config.cube_size[0] / 2,
+                        high=self.config.screen.width - self.config.cube_size[0] / 2,
+                    ),
+                    self.config.cube_size[1] / 2 + 10,  # Slightly above the ground
+                ]
+            )
 
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
         super().setup(space, robot)
@@ -87,9 +89,8 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             if dist_to_target < self.config.success_radius:
                 reward += 100.0
 
-        # TODO: Add action penalty
-        # action_penalty = np.sum(np.square(action)) * 0.001
-        # reward -= action_penalty
+        action_penalty = np.sum(np.square(action.flatten())) * 0.001
+        reward -= action_penalty
         return reward
 
     def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:

@@ -1,5 +1,5 @@
 import math
-from typing import Tuple
+from typing import Tuple, Optional
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
@@ -86,6 +86,9 @@ class SimulationConfig(BaseModel):
     gravity: Tuple[float, float] = Field(..., description="Simulation gravity")
     screen_width: int = Field(..., description="Simulation screen width")
     screen_height: int = Field(..., description="Simulation screen height")
+    max_steps: Optional[int] = Field(
+        None, description="Maximum number of simulation steps"
+    )
 
 
 class DrawOptionsConfig(BaseModel):

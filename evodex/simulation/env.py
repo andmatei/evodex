@@ -193,6 +193,7 @@ class RobotHandEnv(gym.Env):
 
         # Step the simulation
         self.space.step(self.dt)
+        self.step_count += 1
 
         # Get observation
         obs = self.get_observation()
@@ -200,9 +201,13 @@ class RobotHandEnv(gym.Env):
         # Calculate reward and terminated (if applicable)
         reward = self.scenario.get_reward(self.robot, robot_action)
         terminated = self.scenario.is_terminated(self.robot)
-        # TODO: Add truncattion logic
+        truncated = (
+            self.step_count >= self.env_config.simulation.max_steps
+            if self.env_config.simulation.max_steps
+            else False
+        )
 
-        return obs.model_dump(), reward, terminated, False, {}
+        return obs.model_dump(), reward, terminated, truncated, {}
 
     def get_observation(self) -> Observation:
         if not self.robot or not self.scenario:

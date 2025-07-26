@@ -8,7 +8,9 @@ class Observation(BaseModel):
     This class can be extended to include specific observation data.
     """
 
-    velocity: float = Field(..., description="Velocity of the object being observed")
+    velocity: Tuple[float, float] = Field(
+        ..., description="Velocity of the object being observed"
+    )
     position: Tuple[float, float] = Field(
         ..., description="Position of the object being observed"
     )

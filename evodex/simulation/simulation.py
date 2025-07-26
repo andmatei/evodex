@@ -86,7 +86,6 @@ class ManualController:
         }
 
 
-# TODO: Separate the pygame from the main logic, move the main logic inside the env
 class Simulator:
     robot: Optional[Robot] = None
     scenario: Optional[Scenario] = None

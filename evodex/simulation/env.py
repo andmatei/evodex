@@ -1,135 +1,214 @@
 import numpy as np
 import gymnasium as gym
+import pymunk
 from gymnasium import spaces
-from evodex.simulation.simulation import Simulation
-from evodex.simulation.config import (
-    DEFAULT_ROBOT_CONFIG,
-    DEFAULT_SCENARIO_CONFIG,
-    DEFAULT_SIMULATOR_CONFIG,
-)
+from typing import Optional
+from .robot import Robot, RobotConfig, Action
+from .scenario import Scenario, ScenarioConfig, ScenarioRegistry
+from .simulation import SimulatorConfig
+from .types import Observation
 
 
 class RobotHandEnv(gym.Env):
     metadata = {"render_modes": ["human"], "render_fps": 60}
 
+    robot: Optional[Robot] = None
+    scenario: Optional[Scenario] = None
+
     def __init__(
         self,
-        robot_config=DEFAULT_ROBOT_CONFIG,
-        scenario_config=DEFAULT_SCENARIO_CONFIG,
-        sim_config=DEFAULT_SIMULATOR_CONFIG,
-        max_episode_steps=1000,
+        robot_config: RobotConfig,
+        scenario_config: ScenarioConfig,
+        env_config: SimulatorConfig,
     ):
         super().__init__()
-        self.robot_config = robot_config
 
         self.robot_config = robot_config
         self.scenario_config = scenario_config
-        self.sim_config = sim_config
+        self.env_config = env_config
 
-        self.simulation = Simulation(
-            robot_config=self.robot_config,
-            scenario_config=self.scenario_config,
-            config=self.sim_config,
+        self.space = pymunk.Space()
+        self.space.gravity = self.env_config.simulation.gravity
+        self.dt = self.env_config.simulation.dt
+
+        # Define action and observation spaces
+        # TODO: Add constraints from ActionScaleConfig
+        self.action_space = spaces.Dict(
+            {
+                "base": spaces.Dict(
+                    {
+                        "velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                        ),
+                        "omega": spaces.Box(
+                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                        ),
+                    }
+                ),
+                "fingers": spaces.Tuple(
+                    [
+                        spaces.Tuple(
+                            [
+                                spaces.Box(
+                                    low=-np.inf,
+                                    high=np.inf,
+                                    shape=(1,),
+                                    dtype=np.float32,
+                                )
+                                for _ in range(len(finger))
+                            ]
+                        )
+                        for finger in self.robot_config.fingers
+                    ]
+                ),
+            }
         )
 
-        self.max_episode_steps = max_episode_steps
-        self.current_step = 0
-
-        self._setup_action_space()
-        self._setup_observation_space()
-
-    def _setup_action_space(self):
-        self.action_space = spaces.Box(
-            low=-1.0,
-            high=1.0,
-            shape=(self.simulation.robot.get_action_space(),),
-            dtype=np.float32,
+        self.observation_space = spaces.Dict(
+            {
+                "robot": spaces.Dict(
+                    {
+                        "base": spaces.Dict(
+                            {
+                                "position": spaces.Box(
+                                    low=-np.inf,
+                                    high=np.inf,
+                                    shape=(2,),
+                                    dtype=np.float32,
+                                ),
+                                "angle": spaces.Box(
+                                    low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                                ),
+                                "velocity": spaces.Box(
+                                    low=-np.inf,
+                                    high=np.inf,
+                                    shape=(2,),
+                                    dtype=np.float32,
+                                ),
+                                "angular_velocity": spaces.Box(
+                                    low=-np.inf,
+                                    high=np.inf,
+                                    shape=(1,),
+                                    dtype=np.float32,
+                                ),
+                            }
+                        ),
+                        "fingers": spaces.Tuple(
+                            [
+                                spaces.Dict(
+                                    {
+                                        "segments": spaces.Tuple(
+                                            [
+                                                spaces.Dict(
+                                                    {
+                                                        "position": spaces.Box(
+                                                            low=-np.inf,
+                                                            high=np.inf,
+                                                            shape=(2,),
+                                                            dtype=np.float32,
+                                                        ),
+                                                        "joint_angle": spaces.Box(
+                                                            low=-np.pi,
+                                                            high=np.pi,
+                                                            shape=(1,),
+                                                            dtype=np.float32,
+                                                        ),
+                                                        "joint_angular_velocity": spaces.Box(
+                                                            low=-np.inf,
+                                                            high=np.inf,
+                                                            shape=(1,),
+                                                            dtype=np.float32,
+                                                        ),
+                                                        "velocity": spaces.Box(
+                                                            low=-np.inf,
+                                                            high=np.inf,
+                                                            shape=(1,),
+                                                            dtype=np.float32,
+                                                        ),
+                                                    }
+                                                )
+                                                for _ in finger.segments
+                                            ]
+                                        ),
+                                        "fingertip_position": spaces.Box(
+                                            low=-np.inf,
+                                            high=np.inf,
+                                            shape=(2,),
+                                            dtype=np.float32,
+                                        ),
+                                    }
+                                )
+                                for finger in self.robot_config.fingers
+                            ]
+                        ),
+                    }
+                ),
+                "scenario": spaces.Dict(
+                    {
+                        "velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                        ),
+                        "position": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                        ),
+                        "angle": spaces.Box(
+                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                        ),
+                        "angular_velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                        ),
+                    }
+                ),
+            }
         )
 
-    # TODO: Refactor this to use the spaces module
-    def _setup_observation_space(self):
-        robot_obs_space = self.simulation.robot.get_observation_space()
-        scenario_obs_space = self.simulation.scenario.get_observation(
-            self.simulation.robot
-        ).shape
+        self.reset()
 
-        combined_obs_sample = {
-            "robot": robot_obs_space,
-            "scenario": scenario_obs_space,
-        }
+    def reset(self):
+        if self.robot:
+            self.robot.remove_from_space(self.space)
+        if self.scenario:
+            self.scenario.clear_from_space(self.space)
 
-    def step(self, action):
-        self.simulation.step(action)
+        self.robot = Robot(position=(0, 0), config=self.robot_config)
+        self.robot.add_to_space(self.space)
 
-        self.current_step += 1
+        self.scenario = ScenarioRegistry.create(self.scenario_config)
+        self.scenario.setup(self.space, self.robot)
 
-        robot_observation = self.simulation.robot.get_observation()
-        scenario_observation = self.simulation.scenario.get_observation(
-            self.simulation.robot
-        )
-        observation = {
-            "robot": robot_observation,
-        }
+        self.step_count = 0
 
-        reward = self.simulation.scenario.get_reward(
-            self.simulation.robot, action, scenario_observation
-        )
+        return self.get_observation().model_dump(), {}
 
-        terminated = self.simulation.scenario.is_terminated(
-            self.simulation.robot,
-            scenario_observation,
-            self.current_step,
-            self.max_episode_steps,
-        )
+    def step(self, action: dict):
+        if self.robot is None:
+            raise ValueError("Robot is not initialized. Call reset() first.")
 
-        truncated = self.simulation.scenario.is_truncated(
-            self.simulation.robot,
-            scenario_observation,
-            self.current_step,
-            self.max_episode_steps,
-        )
+        if self.scenario is None:
+            raise ValueError("Scenario is not initialized. Call reset() first.")
 
-        info = {}
-        return observation, reward, terminated, truncated, info
+        # Apply actions to the robot
+        robot_action = Action(**action)
+        self.robot.act(robot_action)
 
-    def reset(
-        self,
-        seed=None,
-        new_robot_config=None,
-        new_scenario_config=None,
-        new_sim_config=None,
-    ):
-        super().reset(seed=seed)
-        if new_robot_config:
-            self.robot_config = new_robot_config
-        if new_scenario_config:
-            self.scenario_config = new_scenario_config
-        if new_sim_config:
-            self.sim_config = new_sim_config
-            self.simulation = Simulation(
-                robot_config=self.robot_config,
-                scenario_config=self.scenario_config,
-                config=self.sim_config,
-            )
+        # Step the simulation
+        self.space.step(self.dt)
 
-        self.simulation.reset(
-            new_robot_config=self.robot_config,
-            new_scenario_config=self.scenario_config,
-        )
+        # Get observation
+        obs = self.get_observation()
 
-        self.current_step = 0
-        robot_observation = self.simulation.robot.get_observation()
-        scenario_observation = self.simulation.scenario.get_observation(
-            self.simulation.robot
-        )
-        observation = {
-            "robot": robot_observation,
-        }
-        return observation, {}
+        # Calculate reward and terminated (if applicable)
+        reward = self.scenario.get_reward(self.robot, robot_action)
+        terminated = self.scenario.is_terminated(self.robot)
+        # TODO: Add truncattion logic
 
-    def render(self):
-        if self.render_mode == "human":
-            self.simulation.render()
+        return obs.model_dump(), reward, terminated, False, {}
 
-    def close(self):
-        self.simulation.close()
+    def get_observation(self) -> Observation:
+        if not self.robot or not self.scenario:
+            raise ValueError("Robot or scenario is not initialized.")
+
+        robot_obs = self.robot.get_observation()
+        scenario_obs = self.scenario.get_observation(robot=self.robot)
+
+        return Observation(robot=robot_obs, scenario=scenario_obs)

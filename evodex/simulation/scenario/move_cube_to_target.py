@@ -73,12 +73,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_shape.collision_type = COLLISION_TYPE_SCENARIO_OBJECT_START + 1
         space.add(self.cube_body, self.cube_shape)
 
-        self.objects.append(
-            {
-                "body": self.cube_body,
-                "shape": self.cube_shape,
-            }
-        )
+        self.objects.extend([self.cube_body, self.cube_shape])
 
     def get_reward(self, robot: Robot, action: Action) -> float:
         reward = 0.0
@@ -93,7 +88,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         reward -= action_penalty
         return reward
 
-    def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:
+    def is_terminated(self, robot: Robot) -> bool:
         if self.cube_body:
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
             if np.linalg.norm(cube_pos - self.target_pos) < self.config.success_radius:

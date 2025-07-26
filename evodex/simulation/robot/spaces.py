@@ -1,8 +1,8 @@
-from sys import monitoring
 import numpy as np
 
 from typing import List, Tuple
 from pydantic import BaseModel, Field
+
 
 class BaseAction(BaseModel):
     velocity: Tuple[float, float] = Field(
@@ -14,7 +14,7 @@ class BaseAction(BaseModel):
 class Action(BaseModel):
     base: BaseAction
     fingers: List[List[float]]
-    
+
     def flatten(self) -> np.ndarray:
         """
         Flattens the Action into a list of floats.
@@ -25,10 +25,12 @@ class Action(BaseModel):
         omega = [self.base.omega]
         finger_motor_rates = [rate for finger in self.fingers for rate in finger]
 
-        return np.array(base_velocity + omega + finger_motor_rates).astype(float).tolist()
-    
+        return (
+            np.array(base_velocity + omega + finger_motor_rates).astype(float).tolist()
+        )
+
     @staticmethod
-    def unflatten(flat_action: List[float], segments: List[int]) -> 'Action':
+    def unflatten(flat_action: List[float], segments: List[int]) -> "Action":
         """
         Converts a flattened list of action values back into an Action object.
         Args:
@@ -52,7 +54,7 @@ class Action(BaseModel):
             base=BaseAction(velocity=base_velocity, omega=omega),
             fingers=fingers,
         )
-    
+
 
 class BaseObservation(BaseModel):
     position: Tuple[float, float]
@@ -63,7 +65,7 @@ class BaseObservation(BaseModel):
 
 class SegmentObservation(BaseModel):
     joint_angle: float
-    join_velocity: float
+    joint_angular_velocity: float
 
     position: Tuple[float, float]
     velocity: Tuple[float, float]

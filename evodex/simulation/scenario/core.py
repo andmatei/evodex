@@ -39,7 +39,7 @@ class Scenario(Generic[C], ABC):
         pass
 
     @abstractmethod
-    def is_terminated(self, robot: Robot, current_step: int, max_steps: int) -> bool:
+    def is_terminated(self, robot: Robot) -> bool:
         pass
 
     @abstractmethod
@@ -108,8 +108,8 @@ class ScenarioRegistry:
         return cls._registry.get(name, None)
 
     @classmethod
-    def create(cls, name: str, config: ScenarioConfig) -> Scenario:
-        scenario_class = cls.get(name)
+    def create(cls, config: ScenarioConfig) -> Scenario:
+        scenario_class = cls.get(config.name)
         if scenario_class is None:
-            raise ValueError(f"Scenario class '{name}' not found in registry.")
+            raise ValueError(f"Scenario class '{config.name}' not found in registry.")
         return scenario_class(config)

@@ -65,7 +65,7 @@ class Segment:
     def get_observation(self) -> SegmentObservation:
         return SegmentObservation(
             joint_angle=self.body.angle,
-            join_velocity=self.body.angular_velocity,
+            joint_angular_velocity=self.body.angular_velocity,
             position=self.body.position,
             velocity=self.body.velocity,
         )

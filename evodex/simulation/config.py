@@ -1,9 +1,15 @@
-import math
+import numpy as np
 from typing import Tuple, Optional
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
 from evodex.simulation.utils import NormalizedScale
+
+DEFAULT_ACTION_LIMITS = {
+    "velocity": {"min": -100.0, "max": 100.0},
+    "omega": {"min": -np.pi / 4, "max": np.pi / 4},
+    "motor_rate": {"min": -np.pi / 4, "max": np.pi / 4},
+}
 
 DEFAULT_ROBOT_CONFIG = {
     "base": {
@@ -17,8 +23,8 @@ DEFAULT_ROBOT_CONFIG = {
             "segment_widths": [30, 25, 20],
             "motor_stiffness": 1e7,
             "motor_damping": 1e5,
-            "joint_angle_limit_min": -math.pi / 4,
-            "joint_angle_limit_max": math.pi / 4,
+            "joint_angle_limit_min": -np.pi / 4,
+            "joint_angle_limit_max": np.pi / 4,
             "fingertip_shape": "circle",
             "fingertip_radius": 7,
             "fingertip_size": (10, 5),
@@ -30,8 +36,8 @@ DEFAULT_ROBOT_CONFIG = {
             "segment_width": 12,
             "motor_stiffness": 1e7,
             "motor_damping": 1e5,
-            "joint_angle_limit_min": -math.pi / 3,
-            "joint_angle_limit_max": math.pi / 3,
+            "joint_angle_limit_min": -np.pi / 3,
+            "joint_angle_limit_max": np.pi / 3,
             "fingertip_shape": "rectangle",
             "fingertip_radius": 6,
             "fingertip_size": (12, 6),
@@ -133,11 +139,3 @@ class SimulatorConfig(BaseModel):
         if self.keyboard_control.enabled and not self.render.enabled:
             raise ValueError("Keyboard control is enabled but render is disabled")
         return self
-
-
-class ActionScaleConfig(BaseModel):
-    velocity: Tuple[NormalizedScale, NormalizedScale] = Field(
-        ..., description="Scale for base velocity in x and y directions"
-    )
-    omega: NormalizedScale = Field(..., description="Scale for base angular velocity")
-    motor_rate: NormalizedScale = Field(..., description="Scale for finger motor rates")

@@ -74,7 +74,7 @@ class FingerConfig(BaseModel):
                 segment.setdefault(key, value)
 
         return data
-    
+
     def __len__(self) -> int:
         return len(self.segments)
 
@@ -85,9 +85,33 @@ class BaseConfig(BaseModel):
     mass: float = Field(..., gt=0.0)
 
 
+class LimitConfig(BaseModel):
+    min: float = Field(..., description="Minimum limit value")
+    max: float = Field(..., description="Maximum limit value")
+
+    @model_validator(mode="after")
+    def validate_limits(self) -> "LimitConfig":
+        if self.min >= self.max:
+            raise ValueError("min must be less than max")
+        return self
+
+
+class ActionLimitsConfig(BaseModel):
+    velocity: LimitConfig = Field(..., description="Scale for base velocity ")
+    omega: LimitConfig = Field(..., description="Scale for base angular velocity")
+    motor_rate: LimitConfig = Field(..., description="Scale for finger motor rates")
+
+
 class RobotConfig(BaseModel):
     base: BaseConfig
     fingers: List[FingerConfig]
+    limits: ActionLimitsConfig = Field(
+        default_factory=lambda: ActionLimitsConfig(
+            velocity=LimitConfig(min=-100, max=100),
+            omega=LimitConfig(min=-np.pi / 4, max=np.pi / 4),
+            motor_rate=LimitConfig(min=-np.pi / 4, max=np.pi / 4),
+        )
+    )
 
     def __len__(self) -> int:
         return len(self.fingers)

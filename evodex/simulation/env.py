@@ -32,16 +32,27 @@ class RobotHandEnv(gym.Env):
         self.dt = self.env_config.simulation.dt
 
         # Define action and observation spaces
-        # TODO: Add constraints from ActionScaleConfig
         self.action_space = spaces.Dict(
             {
                 "base": spaces.Dict(
                     {
                         "velocity": spaces.Box(
-                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                            low=self.robot_config.limits.velocity.min,
+                            high=self.robot_config.limits.velocity.max,
+                            shape=(2,),
+                            dtype=np.float32,
                         ),
                         "omega": spaces.Box(
-                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                            low=self.robot_config.limits.omega.min,
+                            high=self.robot_config.limits.omega.max,
+                            shape=(1,),
+                            dtype=np.float32,
+                        ),
+                        "motor_rate": spaces.Box(
+                            low=self.robot_config.limits.motor_rate.min,
+                            high=self.robot_config.limits.motor_rate.max,
+                            shape=(1,),
+                            dtype=np.float32,
                         ),
                     }
                 ),

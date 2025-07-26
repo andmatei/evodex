@@ -102,7 +102,7 @@ def test_create_scenario_success() -> None:
 
     # AND a valid configuration object for it
     dummy_config = DummyScenarioConfig(
-        name="test_scene",
+        name="DummyScenario",
         screen=ScreenConfig(
             width=800,  # Mock screen width
             height=600,  # Mock screen height
@@ -111,13 +111,13 @@ def test_create_scenario_success() -> None:
     )
 
     # WHEN we create the scenario using the registry
-    instance = ScenarioRegistry.create(name="DummyScenario", config=dummy_config)
+    instance = ScenarioRegistry.create(config=dummy_config)
 
     # THEN the created object should be an instance of DummyScenario
     assert isinstance(instance, DummyScenario)
     # AND its config should be the one we passed in
     assert instance.config is dummy_config
-    assert instance.config.name == "test_scene"
+    assert instance.config.name == "DummyScenario"
     assert instance.config.extra_param == 42
 
 
@@ -131,9 +131,8 @@ def test_create_scenario_not_found_raises_error() -> None:
     # THEN a ValueError should be raised
     with pytest.raises(ValueError) as excinfo:
         ScenarioRegistry.create(
-            name="NonExistentScenario",
             config=ScenarioConfig(
-                name="test",
+                name="NonExistendScenario",
                 screen=ScreenConfig(width=800, height=600),
                 robot_start_position=(0, 0),
             ),

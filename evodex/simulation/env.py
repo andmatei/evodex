@@ -1,11 +1,14 @@
 import numpy as np
 import gymnasium as gym
 import pymunk
+import pygame
 from gymnasium import spaces
 from typing import Optional
+
+from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
 from .scenario import Scenario, ScenarioConfig, ScenarioRegistry
-from .simulation import SimulatorConfig
+from .config import SimulatorConfig, RenderConfig
 from .types import Observation
 
 
@@ -14,6 +17,7 @@ class RobotHandEnv(gym.Env):
 
     robot: Optional[Robot] = None
     scenario: Optional[Scenario] = None
+    renderer: Optional[Renderer] = None
 
     def __init__(
         self,
@@ -27,6 +31,7 @@ class RobotHandEnv(gym.Env):
         self.scenario_config = scenario_config
         self.env_config = env_config
 
+        # Initialize the physical simulation
         self.space = pymunk.Space()
         self.space.gravity = self.env_config.simulation.gravity
         self.dt = self.env_config.simulation.dt
@@ -207,7 +212,7 @@ class RobotHandEnv(gym.Env):
         self.step_count += 1
 
         # Get observation
-        obs = self.get_observation()
+        obs = self._get_observation()
 
         # Calculate reward and terminated (if applicable)
         reward = self.scenario.get_reward(self.robot, robot_action)
@@ -220,7 +225,30 @@ class RobotHandEnv(gym.Env):
 
         return obs.model_dump(), reward, terminated, truncated, {}
 
-    def get_observation(self) -> Observation:
+    def render(self):
+        if self.renderer is None:
+            self.renderer = self.Renderer(
+                width=self.scenario_config.screen.width,
+                height=self.scenario_config.screen.height,
+                config=self.env_config.render,
+            )
+
+        # Handle events
+        # TODO: integrate keyboard control
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.renderer.close()
+                return
+
+        # Draw logic
+        self.renderer.render(self.space, self.scenario)
+
+    def close(self):
+        if self.renderer:
+            self.renderer.close()
+        self.renderer = None
+
+    def _get_observation(self) -> Observation:
         if not self.robot or not self.scenario:
             raise ValueError("Robot or scenario is not initialized.")
 

@@ -3,8 +3,6 @@ from typing import Tuple, Optional
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
-from evodex.simulation.utils import NormalizedScale
-
 DEFAULT_ACTION_LIMITS = {
     "velocity": {"min": -100.0, "max": 100.0},
     "omega": {"min": -np.pi / 4, "max": np.pi / 4},

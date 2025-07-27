@@ -13,6 +13,7 @@ from evodex.simulation.robot import Robot, Action
 
 
 class MoveCubeToTargetScenarioConfig(ScenarioConfig):
+    name: str = "MoveCubeToTargetScenario"
     target_pos: Optional[Tuple[float, float]] = Field(
         None, description="Target position"
     )
@@ -38,6 +39,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_shape: Optional[pymunk.Shape] = None
 
         if self.config.target_pos is None:
+            # Random target position within the screen bounds
             self.target_pos = np.random.uniform(
                 low=[0, 0],
                 high=[self.config.screen.width, self.config.screen.height],
@@ -48,7 +50,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         if self.config.cube_initial_pos is not None:
             self.cube_initial_pos = np.array(self.config.cube_initial_pos)
         else:
-            # Default initial position for the cube
+            # Random initial position for the cube
             self.cube_initial_pos = np.array(
                 [
                     np.random.uniform(

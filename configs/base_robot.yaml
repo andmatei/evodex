@@ -6,7 +6,7 @@ fingers:
   - defaults:
       motor_stiffness: 1e+06
       motor_damping: 100000.0
-      joint_angle_limit: 1.0
+      joint_angle_limit: [-1.0, 1.0]
     segments:
       - length: 100
         width: 20
@@ -17,7 +17,7 @@ fingers:
   - defaults:
       motor_stiffness: 1e+06
       motor_damping: 100000.0
-      joint_angle_limit: 1.0
+      joint_angle_limit: [-1.0, 1.0]
     segments:
       - length: 100
         width: 20

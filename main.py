@@ -28,3 +28,4 @@ if __name__ == "__main__":
 
     robot_config = RobotConfig(**robot_config_dict)
     scenario_config = ScenarioConfig(**scenario_config_dict)
+    simulator_config = SimulatorConfig(**simulator_config_dict)

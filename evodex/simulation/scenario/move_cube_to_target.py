@@ -3,7 +3,7 @@ import pymunk
 import pygame
 
 from pydantic import Field
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_SCENARIO_OBJECT_START, pymunk_to_pygame_coord
@@ -13,7 +13,7 @@ from evodex.simulation.robot import Robot, Action
 
 
 class MoveCubeToTargetScenarioConfig(ScenarioConfig):
-    name: str = "MoveCubeToTargetScenario"
+    name: Literal["move_cube_to_target"] = "move_cube_to_target"
     target_pos: Optional[Tuple[float, float]] = Field(
         None, description="Target position"
     )

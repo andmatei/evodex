@@ -1,44 +1,47 @@
 import pytest
+from pydantic import ValidationError
+from typing import Literal
+
+# Assuming the ScenarioRegistry is in this path
 from evodex.simulation.scenario.core import (
     Scenario,
     ScenarioConfig,
     ScenarioRegistry,
-    ScreenConfig,
 )
 
 # --- Test Fixtures and Dummy Classes ---
 
 
-# A specific config for our dummy scenario
-class DummyScenarioConfig(ScenarioConfig):
+# A specific config for our dummy scenario.
+# The `name` field with a Literal value is crucial for registration.
+class DummyConfig(ScenarioConfig):
+    name: Literal["dummy_scenario"] = "dummy_scenario"
     extra_param: int = 42
 
 
-# A concrete scenario class we can use for testing
+# A concrete scenario class we can use for testing.
+# The @register decorator runs when this module is imported.
 @ScenarioRegistry.register
-class DummyScenario(Scenario[DummyScenarioConfig]):
+class DummyScenario(Scenario[DummyConfig]):
     """A simple, registerable scenario for testing purposes."""
 
-    def __init__(self, config: DummyScenarioConfig):
+    def __init__(self, config: DummyConfig):
         super().__init__(config)
 
-    def get_observation(self):
-        """Dummy implementation for observation."""
-        return {"dummy_observation": True}
-
-    def get_reward(self):
-        """Dummy reset method."""
-        return 0.0
-
-    def is_terminated(self, robot, observation, current_step, max_steps):
-        return True
-
+    # No need to implement abstract methods for these tests
     def setup(self, space, robot):
-        """Dummy setup method."""
         pass
 
+    def get_reward(self, robot, action):
+        return 0.0
+
+    def is_terminated(self, robot):
+        return True
+
+    def get_observation(self, robot):
+        return {}
+
     def render(self, screen):
-        """Dummy render method."""
         pass
 
 
@@ -46,9 +49,14 @@ class DummyScenario(Scenario[DummyScenarioConfig]):
 @pytest.fixture(autouse=True)
 def clean_registry():
     """Ensures the registry is empty before each test runs."""
-    ScenarioRegistry._registry.clear()
-    yield  # The test runs here
-    ScenarioRegistry._registry.clear()
+    ScenarioRegistry._scenarios.clear()
+    ScenarioRegistry._configs.clear()
+    # Re-register the dummy scenario for each test after clearing
+    ScenarioRegistry.register(DummyScenario)
+    yield
+    # Cleanup after test
+    ScenarioRegistry._scenarios.clear()
+    ScenarioRegistry._configs.clear()
 
 
 ## ---------------------------------
@@ -56,100 +64,95 @@ def clean_registry():
 ## ---------------------------------
 
 
-def test_register_and_get_scenario() -> None:
+def test_register_scenario_succeeds() -> None:
     """
-    Tests that a scenario can be registered and then retrieved correctly.
+    Tests that the @register decorator correctly populates both internal
+    dictionaries with the correct name and types.
     """
-
     # GIVEN the DummyScenario is defined with the @register decorator
-    # A specific config for our dummy scenario
-    class TestScenarioConfig(ScenarioConfig):
-        extra_param: int = 40
 
-    # A concrete scenario class we can use for testing
-    @ScenarioRegistry.register
-    class TestScenario(Scenario[TestScenarioConfig]):
-        """A simple, registerable scenario for testing purposes."""
+    # THEN the internal dictionaries should be populated correctly
+    assert "dummy_scenario" in ScenarioRegistry._scenarios
+    assert "dummy_scenario" in ScenarioRegistry._configs
 
-        pass
-
-    # WHEN we get the scenario by its class name
-    retrieved_class = ScenarioRegistry.get("TestScenario")
-
-    # THEN the retrieved class should be the TestScenario class itself
-    assert retrieved_class is TestScenario
+    # AND the stored types should be correct
+    assert ScenarioRegistry._scenarios["dummy_scenario"] is DummyScenario
+    assert ScenarioRegistry._configs["dummy_scenario"] is DummyConfig
 
 
-def test_get_nonexistent_scenario_returns_none() -> None:
+def test_load_scenario_from_dict_succeeds() -> None:
     """
-    Tests that getting a scenario that doesn't exist returns None.
+    Tests that a scenario can be successfully loaded from a valid dictionary.
+    This is the primary success-path test.
     """
-    # GIVEN an empty registry (thanks to the clean_registry fixture)
+    # GIVEN a valid configuration dictionary
+    config_data = {
+        "name": "dummy_scenario",
+        "screen": {"width": 800, "height": 600},
+        "robot_start_position": (10, 20),
+        "extra_param": 99,  # Override the default
+    }
 
-    # WHEN we try to get a scenario that was never registered
-    retrieved_class = ScenarioRegistry.get("NonExistentScenario")
-
-    # THEN the result should be None
-    assert retrieved_class is None
-
-
-def test_create_scenario_success() -> None:
-    """
-    Tests the successful creation of a scenario instance from the registry.
-    """
-    # GIVEN a registered scenario
-    ScenarioRegistry.register(DummyScenario)
-
-    # AND a valid configuration object for it
-    dummy_config = DummyScenarioConfig(
-        name="DummyScenario",
-        screen=ScreenConfig(
-            width=800,  # Mock screen width
-            height=600,  # Mock screen height
-        ),
-        robot_start_position=(0, 0),  # Mock start position
-    )
-
-    # WHEN we create the scenario using the registry
-    instance = ScenarioRegistry.create(config=dummy_config)
+    # WHEN we load the scenario using the registry
+    instance = ScenarioRegistry.load(config_data)
 
     # THEN the created object should be an instance of DummyScenario
     assert isinstance(instance, DummyScenario)
-    # AND its config should be the one we passed in
-    assert instance.config is dummy_config
-    assert instance.config.name == "DummyScenario"
-    assert instance.config.extra_param == 42
+    # AND its config should be a correctly parsed DummyConfig instance
+    assert isinstance(instance.config, DummyConfig)
+    # AND the config values should match the input data
+    assert instance.config.name == "dummy_scenario"
+    assert instance.config.extra_param == 99
+    assert instance.config.screen.width == 800
 
 
-def test_create_scenario_not_found_raises_error() -> None:
+def test_load_fails_for_unregistered_scenario() -> None:
     """
-    Tests that trying to create an unregistered scenario raises a ValueError.
+    Tests that trying to load a scenario with an unknown name raises a ValueError.
     """
-    # GIVEN an empty registry
+    # GIVEN a config dict with a name that is not registered
+    config_data = {"name": "unregistered_scenario"}
 
-    # WHEN we attempt to create a scenario that does not exist
-    # THEN a ValueError should be raised
-    with pytest.raises(ValueError) as excinfo:
-        ScenarioRegistry.create(
-            config=ScenarioConfig(
-                name="NonExistendScenario",
-                screen=ScreenConfig(width=800, height=600),
-                robot_start_position=(0, 0),
-            ),
-        )
-
-    # AND the error message should be informative
-    assert "not found in registry" in str(excinfo.value)
+    # WHEN we attempt to load it
+    # THEN a ValueError should be raised with a clear message
+    with pytest.raises(
+        ValueError,
+        match="Scenario config class 'unregistered_scenario' not registered.",
+    ):
+        ScenarioRegistry.load(config_data)
 
 
-def test_registry_instantiation_is_prevented() -> None:
+def test_load_fails_for_missing_name_field() -> None:
     """
-    Tests that calling the constructor of ScenarioRegistry raises a RuntimeError.
+    Tests that loading a dictionary without a 'name' field raises a ValueError.
     """
-    # WHEN we attempt to instantiate the registry itself
-    # THEN a RuntimeError should be raised
-    with pytest.raises(RuntimeError) as excinfo:
-        ScenarioRegistry()
+    # GIVEN a config dict that is missing the 'name' key
+    config_data = {
+        "screen": {"width": 800, "height": 600},
+        "robot_start_position": (10, 20),
+    }
 
-    # AND the error message should be clear
-    assert "not meant to be instantiated." in str(excinfo.value)
+    # WHEN we attempt to load it
+    # THEN a ValueError should be raised with a clear message
+    with pytest.raises(
+        ValueError, match="Scenario configuration must contain a 'name' field."
+    ):
+        ScenarioRegistry.load(config_data)
+
+
+def test_load_fails_for_invalid_config_data() -> None:
+    """
+    Tests that the registry correctly raises a Pydantic ValidationError if the
+    data does not match the specific config model's schema.
+    """
+    # GIVEN a config dict with the correct name but invalid data type for a field
+    config_data = {
+        "name": "dummy_scenario",
+        "screen": {"width": "invalid-width", "height": 600},  # width should be an int
+        "robot_start_position": (10, 20),
+    }
+
+    # WHEN we attempt to load it
+    # THEN Pydantic's ValidationError should be raised
+    with pytest.raises(ValidationError):
+        ScenarioRegistry.load(config_data)

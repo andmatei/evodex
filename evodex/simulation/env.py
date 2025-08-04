@@ -23,7 +23,7 @@ class RobotHandEnv(gym.Env):
         self,
         robot_config: RobotConfig,
         scenario_config: ScenarioConfig,
-        env_config: SimulatorConfig,
+        env_config: SimulatorConfig,  # TODO: Rename this
     ):
         super().__init__()
 

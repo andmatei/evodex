@@ -1,10 +1,11 @@
 import pymunk
 import pygame
+import inspect
 
 from abc import ABC, abstractmethod
-from typing import Type, Optional, TypeVar, Generic
+from typing import Annotated, Type, Optional, TypeVar, Generic
 from pydantic import BaseModel, Field
-from typing import Tuple
+from typing import Tuple, Union
 
 from .types import Observation
 
@@ -86,30 +87,44 @@ class GroundScenario(Scenario[C], ABC):
 
 
 class ScenarioRegistry:
-    _registry: dict[str, Type[Scenario]] = {}
-
-    def __init__(self):
-        raise RuntimeError(
-            "ScenarioRegistry is a class for managing scenario classes, not meant to be instantiated."
-        )
-
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(ScenarioRegistry, cls).__new__(cls)
-        return cls.instance
+    _scenarios: dict[str, Type[Scenario]] = {}
+    _configs: dict[str, Type[ScenarioConfig]] = {}
 
     @classmethod
     def register(cls, scenario_class: Type[Scenario]) -> Type[Scenario]:
-        cls._registry[scenario_class.__name__] = scenario_class
+        sig = inspect.signature(scenario_class.__init__)
+        config = sig.parameters.get("config", None)
+
+        if config is None or not issubclass(config.annotation, ScenarioConfig):
+            raise ValueError(
+                f"Scenario class '{scenario_class.__name__}' must have a 'config' parameter of type ScenarioConfig."
+            )
+
+        config_class = config.annotation
+        scenario_name = config_class.model_fields["name"].default
+        if not scenario_name:
+            raise ValueError(
+                f"Cannot register {scenario_class.__name__}: "
+                "Its config model must have a Literal 'name' with a default value."
+            )
+
+        cls._scenarios[scenario_name] = scenario_class
+        cls._configs[scenario_name] = config_class
         return scenario_class
 
     @classmethod
-    def get(cls, name: str) -> Optional[Type[Scenario]]:
-        return cls._registry.get(name, None)
+    def load(cls, config: dict) -> Scenario:
+        scenario_name = config.get("name")
+        if scenario_name is None:
+            raise ValueError("Scenario configuration must contain a 'name' field.")
 
-    @classmethod
-    def create(cls, config: ScenarioConfig) -> Scenario:
-        scenario_class = cls.get(config.name)
-        if scenario_class is None:
-            raise ValueError(f"Scenario class '{config.name}' not found in registry.")
-        return scenario_class(config)
+        ConfigClass = cls._configs.get(scenario_name)
+        if ConfigClass is None:
+            raise ValueError(f"Scenario config class '{scenario_name}' not registered.")
+
+        ScenarioClass = cls._scenarios.get(scenario_name)
+        if ScenarioClass is None:
+            raise ValueError(f"Scenario class '{scenario_name}' not registered.")
+
+        scenario_config = ConfigClass(**config)
+        return ScenarioClass(config=scenario_config)

@@ -3,12 +3,8 @@ from typing import Tuple, Optional
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
-DEFAULT_SCENARIO_CONFIG = {
-    "type": "MoveCubeToTargetScenario",  # Default scenario type
-    "target_position": (600, 300),  # Default target position for scenarios
-}
 
-
+# TODO: Add logging
 class LogLevel(Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -57,7 +53,7 @@ class KeyboardControlConfig(BaseModel):
 
 
 # TODO: Add optional fields
-class SimulatorConfig(BaseModel):
+class EnvConfig(BaseModel):
     simulation: SimulationConfig = Field(..., description="Simulation config")
     render: RenderConfig = Field(..., description="Render config")
     logging: LoggingConfig = Field(..., description="Logging config")

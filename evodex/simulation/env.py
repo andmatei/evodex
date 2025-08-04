@@ -7,8 +7,8 @@ from typing import Optional
 
 from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
-from .scenario import Scenario, ScenarioConfig, ScenarioRegistry
-from .config import SimulatorConfig, RenderConfig
+from .scenario import Scenario, ScenarioRegistry
+from .config import EnvConfig
 from .types import Observation
 
 
@@ -21,15 +21,16 @@ class RobotHandEnv(gym.Env):
 
     def __init__(
         self,
-        robot_config: RobotConfig,
-        scenario_config: ScenarioConfig,
-        env_config: SimulatorConfig,  # TODO: Rename this
+        robot_config: dict,
+        scenario_config: dict,
+        env_config: dict,
     ):
         super().__init__()
 
-        self.robot_config = robot_config
-        self.scenario_config = scenario_config
-        self.env_config = env_config
+        self.robot_config = RobotConfig(**robot_config)
+        self.env_config = EnvConfig(**env_config)
+        self.scenario_config = ScenarioRegistry.parse_config(scenario_config)
+        self.scenario_data = scenario_config
 
         # Initialize the physical simulation
         self.space = pymunk.Space()
@@ -189,12 +190,12 @@ class RobotHandEnv(gym.Env):
         self.robot = Robot(position=(0, 0), config=self.robot_config)
         self.robot.add_to_space(self.space)
 
-        self.scenario = ScenarioRegistry.create(self.scenario_config)
+        self.scenario = ScenarioRegistry.load(self.scenario_data)
         self.scenario.setup(self.space, self.robot)
 
         self.step_count = 0
 
-        return self.get_observation().model_dump(), {}
+        return self._get_observation().model_dump(), {}
 
     def step(self, action: dict):
         if self.robot is None:
@@ -226,8 +227,11 @@ class RobotHandEnv(gym.Env):
         return obs.model_dump(), reward, terminated, truncated, {}
 
     def render(self):
+        if self.scenario is None:
+            raise ValueError("Scenario is not initialized. Call reset() first.")
+
         if self.renderer is None:
-            self.renderer = self.Renderer(
+            self.renderer = Renderer(
                 width=self.scenario_config.screen.width,
                 height=self.scenario_config.screen.height,
                 config=self.env_config.render,

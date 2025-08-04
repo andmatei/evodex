@@ -92,6 +92,8 @@ class ScenarioRegistry:
 
     @classmethod
     def register(cls, scenario_class: Type[Scenario]) -> Type[Scenario]:
+        print(f"Registering scenario: {scenario_class.__name__}")
+
         sig = inspect.signature(scenario_class.__init__)
         config = sig.parameters.get("config", None)
 
@@ -111,6 +113,27 @@ class ScenarioRegistry:
         cls._scenarios[scenario_name] = scenario_class
         cls._configs[scenario_name] = config_class
         return scenario_class
+
+    @classmethod
+    def parse_config(cls, config: dict) -> ScenarioConfig:
+        """
+        Parses a scenario configuration dictionary and returns the corresponding Scenario instance.
+
+        Args:
+            config (dict): The scenario configuration dictionary.
+
+        Returns:
+            Scenario: An instance of the registered Scenario class.
+        """
+        scenario_name = config.get("name")
+        if scenario_name is None:
+            raise ValueError("Scenario configuration must contain a 'name' field.")
+
+        ConfigClass = cls._configs.get(scenario_name)
+        if ConfigClass is None:
+            raise ValueError(f"Scenario config class '{scenario_name}' not registered.")
+
+        return ConfigClass(**config)
 
     @classmethod
     def load(cls, config: dict) -> Scenario:

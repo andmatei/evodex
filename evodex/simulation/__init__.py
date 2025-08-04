@@ -1,5 +1,4 @@
 from .env import RobotHandEnv
-from .config import SimulatorConfig
 
 import gymnasium as gym
 

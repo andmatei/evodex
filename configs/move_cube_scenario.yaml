@@ -1,4 +1,4 @@
-name: MoveCubeToTargetScenario
+name: move_cube_to_target
 screen:
   width: 800
   height: 600

@@ -1,7 +1,6 @@
 import yaml
 
-from evodex.simulation import RobotHandEnv, SimulatorConfig
-from evodex.simulation.robot import RobotConfig
+from evodex.simulation import RobotHandEnv
 from evodex.simulation.scenario import ScenarioConfig
 
 
@@ -22,13 +21,9 @@ def load_config(path: str) -> dict:
 
 # --- Main Execution (Example Usage) ---
 if __name__ == "__main__":
-    robot_config_dict = load_config("configs/base_robot.yaml")
-    scenario_config_dict = load_config("configs/move_cube_scenario.yaml")
-    simulator_config_dict = load_config("configs/base_simulator.yaml")
-
-    robot_config = RobotConfig(**robot_config_dict)
-    scenario_config = ScenarioConfig(**scenario_config_dict)
-    simulator_config = SimulatorConfig(**simulator_config_dict)
+    robot_config = load_config("configs/base_robot.yaml")
+    scenario_config = load_config("configs/move_cube_scenario.yaml")
+    simulator_config = load_config("configs/base_simulator.yaml")
 
     env = RobotHandEnv(
         robot_config=robot_config,
@@ -40,5 +35,5 @@ if __name__ == "__main__":
 
     while True:
         action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
+        observation, reward, terminated, truncated, info = env.step(action)
         env.render()

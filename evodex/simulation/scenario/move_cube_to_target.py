@@ -18,7 +18,9 @@ class MoveCubeToTargetScenarioConfig(ScenarioConfig):
         None, description="Target position"
     )
     success_radius: float = Field(..., description="Success radius")
-    cube_size: Tuple[float, float] = Field(..., description="Cube size")
+    cube_size: Tuple[float, float] = Field(
+        ..., description="Cube size"
+    )  # TODO: Extrapolate to more types of objects
     cube_initial_pos: Optional[Tuple[float, float]] = Field(
         None, description="Cube initial position"
     )
@@ -43,12 +45,12 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             self.target_pos = np.random.uniform(
                 low=[0, 0],
                 high=[self.config.screen.width, self.config.screen.height],
-            )
+            ).tolist()
         else:
-            self.target_pos = np.array(self.config.target_pos)
+            self.target_pos = self.config.target_pos
 
         if self.config.cube_initial_pos is not None:
-            self.cube_initial_pos = np.array(self.config.cube_initial_pos)
+            self.cube_initial_pos = self.config.cube_initial_pos
         else:
             # Random initial position for the cube
             self.cube_initial_pos = np.array(
@@ -59,7 +61,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
                     ),
                     self.config.cube_size[1] / 2 + 10,  # Slightly above the ground
                 ]
-            )
+            ).tolist()
 
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
         super().setup(space, robot)
@@ -103,8 +105,8 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             raise ValueError("Scenario is not initialized.")
 
         return Observation(
-            velocity=self.cube_body.velocity.length,
-            position=(self.cube_body.position.x, self.cube_body.position.y),
+            velocity=self.cube_body.velocity,
+            position=self.cube_body.position,
             angle=self.cube_body.angle,
             angular_velocity=self.cube_body.angular_velocity,
         )
@@ -117,6 +119,6 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             screen,
             pygame.Color("lightgreen"),
             target_center_pygame,
-            self.success_threshold,
+            self.config.success_radius,
             2,
         )

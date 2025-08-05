@@ -26,6 +26,7 @@ class MoveCubeToTargetScenarioConfig(ScenarioConfig):
     )
 
 
+# TODO: Add goal for goal-oriented RL
 @ScenarioRegistry.register
 class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
     """

@@ -10,7 +10,7 @@ from evodex.simulation.robot.spaces import BaseObservation
 
 
 class Base:
-    def __init__(self, position, config: BaseConfig):
+    def __init__(self, position: Tuple[float, float], config: BaseConfig):
         self.config = config
 
         moment = pymunk.moment_for_box(
@@ -34,6 +34,14 @@ class Base:
         )
 
         self.finger_attachment_points_local: List[Tuple[float, float]] = []
+
+    @property
+    def position(self) -> Tuple[float, float]:
+        return self.body.position
+
+    @position.setter
+    def position(self, pos: Tuple[float, float]) -> None:
+        self.body.position = pos
 
     def set_finger_count(self, num_fingers):
         self.finger_attachment_points_local = []

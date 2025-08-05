@@ -187,9 +187,7 @@ class RobotHandEnv(gym.Env):
         if self.scenario:
             self.scenario.clear_from_space(self.space)
 
-        self.robot = Robot(position=(0, 0), config=self.robot_config)
-        self.robot.add_to_space(self.space)
-
+        self.robot = Robot(position=(200, 400), config=self.robot_config)
         self.scenario = ScenarioRegistry.load(self.scenario_data)
         self.scenario.setup(self.space, self.robot)
 
@@ -232,8 +230,8 @@ class RobotHandEnv(gym.Env):
 
         if self.renderer is None:
             self.renderer = Renderer(
-                width=self.scenario_config.screen.width,
-                height=self.scenario_config.screen.height,
+                width=self.env_config.simulation.screen_width,
+                height=self.env_config.simulation.screen_height,
                 config=self.env_config.render,
             )
 

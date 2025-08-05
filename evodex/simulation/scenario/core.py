@@ -33,7 +33,8 @@ class Scenario(Generic[C], ABC):
 
     @abstractmethod
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
-        pass
+        robot.add_to_space(space)
+        robot.position = self.config.robot_start_position
 
     @abstractmethod
     def get_reward(self, robot: Robot, action: Action) -> float:
@@ -72,6 +73,8 @@ class GroundScenario(Scenario[C], ABC):
 
     @abstractmethod
     def setup(self, space: pymunk.Space, robot: Robot) -> None:
+        super().setup(space, robot)
+
         # Create a static ground segment
         ground_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         ground_shape = pymunk.Segment(

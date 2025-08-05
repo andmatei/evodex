@@ -25,6 +25,15 @@ class Robot:
         self.num_motors_per_finger: list[int] = [f.num_segments for f in self.fingers]
         self.total_motors = sum(self.num_motors_per_finger)
 
+    @property
+    def position(self) -> tuple[float, float]:
+        return self.base.position
+
+    @position.setter
+    def position(self, pos: tuple[float, float]) -> None:
+        """Set the robot's base position."""
+        self.base.position = pos
+
     def act(self, action: Action):
         """Apply actions to the robot base and its fingers."""
         # Apply base movement

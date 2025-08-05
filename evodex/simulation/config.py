@@ -16,8 +16,6 @@ class LogLevel(Enum):
 class SimulationConfig(BaseModel):
     dt: float = Field(..., description="Simulation time step")
     gravity: Tuple[float, float] = Field(..., description="Simulation gravity")
-    screen_width: int = Field(..., description="Simulation screen width")
-    screen_height: int = Field(..., description="Simulation screen height")
     max_steps: Optional[int] = Field(
         None, description="Maximum number of simulation steps"
     )
@@ -32,9 +30,15 @@ class DrawOptionsConfig(BaseModel):
     draw_kinematics: bool = Field(default=False, description="Draw kinematics")
 
 
+class ScreenConfig(BaseModel):
+    width: int = Field(..., description="Screen width")
+    height: int = Field(..., description="Screen height")
+
+
 class RenderConfig(BaseModel):
     enabled: bool = Field(default=True, description="Render enabled")
     fps: int = Field(default=60, description="Render fps")
+    screen: ScreenConfig = Field(..., description="Screen config")
     draw_options: DrawOptionsConfig = Field(
         default=DrawOptionsConfig(), description="Draw options"
     )

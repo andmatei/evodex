@@ -8,11 +8,13 @@ from .config import RenderConfig
 
 class Renderer:
     # TODO: Maybe move screen dimensions to RenderConfig
-    def __init__(self, width: int, height: int, config: RenderConfig):
+    def __init__(self, config: RenderConfig):
         self.config = config
 
         pygame.init()
-        self.screen = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode(
+            (self.config.screen.width, self.config.screen.height)
+        )
         self.clock = pygame.time.Clock()
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         pygame.display.set_caption("Robot Hand Simulation")

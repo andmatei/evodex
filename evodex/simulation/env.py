@@ -229,11 +229,7 @@ class RobotHandEnv(gym.Env):
             raise ValueError("Scenario is not initialized. Call reset() first.")
 
         if self.renderer is None:
-            self.renderer = Renderer(
-                width=self.env_config.simulation.screen_width,
-                height=self.env_config.simulation.screen_height,
-                config=self.env_config.render,
-            )
+            self.renderer = Renderer(config=self.env_config.render)
 
         # Handle events
         # TODO: integrate keyboard control

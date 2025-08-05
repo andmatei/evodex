@@ -12,14 +12,14 @@ from .types import Observation
 from evodex.simulation.robot import Robot, Action
 
 
-class ScreenConfig(BaseModel):
+class ScenarioDimensionsConfig(BaseModel):
     width: int = Field(..., description="Screen width")
     height: int = Field(..., description="Screen height")
 
 
 class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
-    screen: ScreenConfig = Field(..., description="Screen config")
+    screen: ScenarioDimensionsConfig = Field(..., description="Scenario dimenisions")
     robot_start_position: Tuple[float, float] = Field(..., description="Start position")
 
 

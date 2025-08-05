@@ -139,7 +139,7 @@ class RobotHandEnv(gym.Env):
                                                         "velocity": spaces.Box(
                                                             low=-np.inf,
                                                             high=np.inf,
-                                                            shape=(1,),
+                                                            shape=(2,),
                                                             dtype=np.float32,
                                                         ),
                                                     }
@@ -181,13 +181,19 @@ class RobotHandEnv(gym.Env):
 
         self.reset()
 
-    def reset(self):
+    # TODO: Add seed
+    def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
+        super().reset(seed=seed, options=options)
+
         if self.robot:
             self.robot.remove_from_space(self.space)
         if self.scenario:
             self.scenario.clear_from_space(self.space)
 
-        self.robot = Robot(position=(200, 400), config=self.robot_config)
+        if seed is not None:
+            self.scenario_config.seed = seed
+
+        self.robot = Robot(self.robot_config)
         self.scenario = ScenarioRegistry.load(self.scenario_data)
         self.scenario.setup(self.space, self.robot)
 

@@ -5,10 +5,10 @@ from .spaces import Action, Observation
 
 
 class Robot:
-    def __init__(self, position, config: RobotConfig):
+    def __init__(self, config: RobotConfig):
         self.config = config
 
-        self.base = Base(position, self.config.base)
+        self.base = Base(self.config.base)
         self.base.set_finger_count(len(self.config.fingers))
 
         self.fingers: list[Finger] = []

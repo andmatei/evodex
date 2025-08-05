@@ -68,6 +68,7 @@ class Finger:
                 anchor_a_local_for_joint,
                 anchor_b_local_for_joint,
             )
+            segment.joint = joint
 
             min_angle_rel = segment_config.joint_angle_limit[0]
             max_angle_rel = segment_config.joint_angle_limit[1]

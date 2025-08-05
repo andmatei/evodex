@@ -19,6 +19,7 @@ class ScenarioDimensionsConfig(BaseModel):
 
 class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
+    seed: Optional[int] = Field(None, description="Random seed for reproducibility")
     screen: ScenarioDimensionsConfig = Field(..., description="Scenario dimenisions")
     robot_start_position: Tuple[float, float] = Field(..., description="Start position")
 

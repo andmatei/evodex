@@ -1,5 +1,8 @@
 import yaml
 
+from gymnasium.wrappers import FlattenObservation
+from stable_baselines3.common.env_checker import check_env
+
 from evodex.simulation import RobotHandEnv
 from evodex.simulation.scenario import ScenarioConfig
 
@@ -31,7 +34,11 @@ if __name__ == "__main__":
         env_config=simulator_config,
     )
 
-    env.reset()
+    env = FlattenObservation(env)
+
+    print(env.reset()[0])
+
+    check_env(env, warn=True)
 
     while True:
         action = env.action_space.sample()

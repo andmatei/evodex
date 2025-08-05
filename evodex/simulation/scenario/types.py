@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 class Observation(BaseModel):
@@ -19,7 +19,7 @@ class Observation(BaseModel):
         ..., description="Angular velocity of the object being observed"
     )
 
-    data: Dict[str, Any] = Field(
-        default_factory=dict,
+    data: Optional[Dict[str, Any]] = Field(
+        None,
         description="Additional data related to the observation, if any",
     )

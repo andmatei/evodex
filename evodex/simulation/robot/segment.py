@@ -21,6 +21,8 @@ class Segment:
         is_fingertip=False,
         is_base=False,
     ):
+        self.joint: pymunk.constraints.PivotJoint | None = None
+
         self.config = config
         self.is_fingertip = is_fingertip
         self.is_base = is_base
@@ -63,8 +65,13 @@ class Segment:
         )
 
     def get_observation(self) -> SegmentObservation:
+        if self.joint is None:
+            raise ValueError("Segment joint is not set. Cannot get observation.")
+
+        relative_angle = self.joint.b.angle - self.joint.a.angle
+
         return SegmentObservation(
-            joint_angle=self.body.angle,
+            joint_angle=relative_angle,
             joint_angular_velocity=self.body.angular_velocity,
             position=self.body.position,
             velocity=self.body.velocity,

@@ -10,7 +10,7 @@ from evodex.simulation.robot.spaces import BaseObservation
 
 
 class Base:
-    def __init__(self, position: Tuple[float, float], config: BaseConfig):
+    def __init__(self, config: BaseConfig):
         self.config = config
 
         moment = pymunk.moment_for_box(
@@ -20,7 +20,7 @@ class Base:
             mass=self.config.mass, moment=moment, body_type=pymunk.Body.KINEMATIC
         )
 
-        self.body.position = position
+        self.body.position = (0, 0)
         self.body.velocity = (0, 0)
         self.body.angular_velocity = 0
         self.shape = pymunk.Poly.create_box(

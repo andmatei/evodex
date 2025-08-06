@@ -54,12 +54,6 @@ class RobotHandEnv(gym.Env):
                             shape=(1,),
                             dtype=np.float32,
                         ),
-                        "motor_rate": spaces.Box(
-                            low=self.robot_config.limits.motor_rate.min,
-                            high=self.robot_config.limits.motor_rate.max,
-                            shape=(1,),
-                            dtype=np.float32,
-                        ),
                     }
                 ),
                 "fingers": spaces.Tuple(
@@ -67,8 +61,8 @@ class RobotHandEnv(gym.Env):
                         spaces.Tuple(
                             [
                                 spaces.Box(
-                                    low=-np.inf,
-                                    high=np.inf,
+                                    low=self.robot_config.limits.motor_rate.min,
+                                    high=self.robot_config.limits.motor_rate.max,
                                     shape=(1,),
                                     dtype=np.float32,
                                 )
@@ -181,7 +175,6 @@ class RobotHandEnv(gym.Env):
 
         self.reset()
 
-    # TODO: Add seed
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed, options=options)
 

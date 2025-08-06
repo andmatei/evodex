@@ -1,10 +1,9 @@
 import yaml
 
-from gymnasium.wrappers import FlattenObservation
 from stable_baselines3.common.env_checker import check_env
 
 from evodex.simulation import RobotHandEnv
-from evodex.simulation.scenario import ScenarioConfig
+from evodex.simulation.wrapper import flatten
 
 
 def load_config(path: str) -> dict:
@@ -28,13 +27,15 @@ if __name__ == "__main__":
     scenario_config = load_config("configs/move_cube_scenario.yaml")
     simulator_config = load_config("configs/base_simulator.yaml")
 
-    env = RobotHandEnv(
-        robot_config=robot_config,
-        scenario_config=scenario_config,
-        env_config=simulator_config,
+    env = flatten(
+        RobotHandEnv(
+            robot_config=robot_config,
+            scenario_config=scenario_config,
+            env_config=simulator_config,
+        ),
+        observation=True,
+        action=True,
     )
-
-    env = FlattenObservation(env)
 
     print(env.reset()[0])
 

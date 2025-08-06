@@ -46,7 +46,11 @@ class Scenario(Generic[C], ABC):
         pass
 
     @abstractmethod
-    def get_observation(self, robot) -> Observation:
+    def get_observation(self, robot: Robot) -> Observation:
+        pass
+
+    @abstractmethod
+    def get_goal(self, robot: Robot) -> Observation:
         pass
 
     @abstractmethod

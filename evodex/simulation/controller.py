@@ -1,7 +1,6 @@
 import pygame
 
 
-# TODO: deal with the config and move to a separate file
 class ManualController:
     def __init__(self, config: dict):
         self.config = config

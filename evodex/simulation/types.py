@@ -10,9 +10,13 @@ class Observation(BaseModel):
     This class can be extended to include specific observation data.
     """
 
-    robot: RobotObservation = Field(
+    observation: RobotObservation = Field(
         ..., description="Intrinsic observation data of the robot"
     )
-    scenario: ScenarioObservation = Field(
+    achieved_goal: ScenarioObservation = Field(
         ..., description="Extrinsic observation data from the scenario"
+    )
+
+    desired_goal: ScenarioObservation = Field(
+        ..., description="Goal observation data from the scenario"
     )

@@ -106,10 +106,15 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             raise ValueError("Scenario is not initialized.")
 
         return Observation(
-            velocity=self.cube_body.velocity,
-            position=self.cube_body.position,
+            velocity=tuple(self.cube_body.velocity),
+            position=tuple(self.cube_body.position),
             angle=self.cube_body.angle,
             angular_velocity=self.cube_body.angular_velocity,
+        )
+
+    def get_goal(self, robot: Robot) -> Observation:
+        return Observation(
+            position=self.target_pos, velocity=(0, 0), angle=0.0, angular_velocity=0.0
         )
 
     def render(self, screen):

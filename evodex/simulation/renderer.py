@@ -7,7 +7,6 @@ from .config import RenderConfig
 
 
 class Renderer:
-    # TODO: Maybe move screen dimensions to RenderConfig
     def __init__(self, config: RenderConfig):
         self.config = config
 

@@ -20,6 +20,5 @@ class Observation(BaseModel):
     )
 
     data: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Additional data related to the observation, if any",
+        default=None, description="Optional test field for demonstration purposes"
     )

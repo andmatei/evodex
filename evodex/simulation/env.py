@@ -77,7 +77,7 @@ class RobotHandEnv(gym.Env):
 
         self.observation_space = spaces.Dict(
             {
-                "robot": spaces.Dict(
+                "observation": spaces.Dict(
                     {
                         "base": spaces.Dict(
                             {
@@ -154,12 +154,28 @@ class RobotHandEnv(gym.Env):
                         ),
                     }
                 ),
-                "scenario": spaces.Dict(
+                "achieved_goal": spaces.Dict(
                     {
                         "velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                         "position": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                        ),
+                        "angle": spaces.Box(
+                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                        ),
+                        "angular_velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                        ),
+                    }
+                ),
+                "desired_goal": spaces.Dict(
+                    {
+                        "position": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                        ),
+                        "velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                         "angle": spaces.Box(
@@ -231,7 +247,6 @@ class RobotHandEnv(gym.Env):
             self.renderer = Renderer(config=self.env_config.render)
 
         # Handle events
-        # TODO: integrate keyboard control
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.renderer.close()
@@ -251,5 +266,10 @@ class RobotHandEnv(gym.Env):
 
         robot_obs = self.robot.get_observation()
         scenario_obs = self.scenario.get_observation(robot=self.robot)
+        scenario_goal = self.scenario.get_goal(robot=self.robot)
 
-        return Observation(robot=robot_obs, scenario=scenario_obs)
+        return Observation(
+            observation=robot_obs,
+            achieved_goal=scenario_obs,
+            desired_goal=scenario_goal,
+        )

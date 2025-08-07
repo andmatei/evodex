@@ -36,6 +36,14 @@ class Base:
         self.finger_attachment_points_local: List[Tuple[float, float]] = []
 
     @property
+    def angle(self) -> float:
+        return self.body.angle
+    
+    @angle.setter
+    def angle(self, angle: float) -> None:
+        self.body.angle = angle
+
+    @property
     def position(self) -> Tuple[float, float]:
         return self.body.position
 

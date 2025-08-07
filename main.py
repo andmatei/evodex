@@ -95,12 +95,12 @@ if __name__ == "__main__":
 
     obs = vec_env.reset()
     print(type(obs))  # Check the observation type
-    for _ in range(1000):  # Run evaluation for 1000 steps
+    for _ in range(10000):  # Run evaluation for 1000 steps
         # The model's predict method gets the best action
-        action, _states = model.predict(obs, deterministic=True)
+        action, _ = model.predict(obs, deterministic=True) # type: ignore
         obs, reward, done, info = vec_env.step(action)
         vec_env.render()
-        if done:
+        if done.any():
             print("   Evaluation episode finished.")
             obs = vec_env.reset()
 

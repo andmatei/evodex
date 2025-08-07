@@ -3,6 +3,8 @@ import pymunk
 
 from typing import List
 
+from torch import Value
+
 from evodex.simulation.robot.spaces import FingerObservation
 from .config import FingerConfig
 from .segment import Segment
@@ -78,6 +80,7 @@ class Finger:
             self.joints.extend([joint, limit_joint])
 
             motor = pymunk.SimpleMotor(prev_body, segment.body, 0)
+            motor.max_force = 10000000 # TODO: Add either in config or as a constant
             self.motors.append(motor)
 
             prev_body = segment.body
@@ -85,7 +88,9 @@ class Finger:
 
     def act(self, rates: List[float]):
         if len(rates) != len(self.motors):
-            return
+            raise ValueError(
+                f"Action rates length {len(rates)} does not match finger length {len(self.motors)}."
+            )
         for motor, rate in zip(self.motors, rates):
             motor.rate = rate
 

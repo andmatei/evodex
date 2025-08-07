@@ -40,6 +40,7 @@ class Scenario(Generic[C], ABC):
         
         robot.add_to_space(space)
         robot.position = self.config.robot_start_position
+        robot.angle = np.pi / 2
 
     @abstractmethod
     def get_reward(self, robot: Robot, action: Action) -> float:

@@ -26,6 +26,16 @@ class Robot:
         self.total_motors = sum(self.num_motors_per_finger)
 
     @property
+    def angle(self) -> float:
+        """Get the robot's base rotation angle."""
+        return self.base.angle
+    
+    @angle.setter
+    def angle(self, angle: float) -> None:
+        """Set the robot's base rotation angle."""
+        self.base.angle = angle
+
+    @property
     def position(self) -> tuple[float, float]:
         return self.base.position
 
@@ -41,10 +51,17 @@ class Robot:
         self.base.body.angular_velocity = action.base.omega
 
         # Apply motor rates to fingers
-        if len(action.fingers) != self.total_motors:
-            return
+        if len(action.fingers) != len(self.fingers):
+            raise ValueError(
+                f"Action fingers length {len(action.fingers)} does not match robot fingers count {len(self.fingers)}."
+            )
         for i, finger_action in enumerate(action.fingers):
-            self.fingers[i].act(finger_action)
+            try:
+                self.fingers[i].act(finger_action)
+            except ValueError as e:
+                raise ValueError(
+                    f"Error in finger {i} action: {str(e)}"
+                ) from e
 
     def get_observation(self) -> Observation:
         return Observation(

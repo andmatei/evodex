@@ -41,9 +41,12 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_body: Optional[pymunk.Body] = None
         self.cube_shape: Optional[pymunk.Shape] = None
 
+    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+        super().setup(space, robot, seed)
+
         if self.config.target_pos is None:
             # Random target position within the screen bounds
-            self.target_pos = np.random.uniform(
+            self.target_pos = self._random.uniform(
                 low=[0, 0],
                 high=[self.config.screen.width, self.config.screen.height],
             ).tolist()
@@ -64,9 +67,6 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
                 ]
             ).tolist()
 
-    def setup(self, space: pymunk.Space, robot: Robot) -> None:
-        super().setup(space, robot)
-
         mass = 1.0
         moment = pymunk.moment_for_box(mass, self.config.cube_size)
 
@@ -78,7 +78,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_shape.collision_type = COLLISION_TYPE_SCENARIO_OBJECT_START + 1
         space.add(self.cube_body, self.cube_shape)
 
-        self.objects.extend([self.cube_body, self.cube_shape])
+        self._objects.extend([self.cube_body, self.cube_shape])
 
     def get_reward(self, robot: Robot, action: Action) -> float:
         reward = 0.0

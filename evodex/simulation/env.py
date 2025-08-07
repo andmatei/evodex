@@ -24,13 +24,14 @@ class RobotHandEnv(gym.Env):
         robot_config: dict,
         scenario_config: dict,
         env_config: dict,
+        render_mode: Optional[str] = None
     ):
         super().__init__()
 
         self.robot_config = RobotConfig(**robot_config)
         self.env_config = EnvConfig(**env_config)
-        self.scenario_config = ScenarioRegistry.parse_config(scenario_config)
-        self.scenario_data = scenario_config
+        self.scenario_config = scenario_config
+        self.render_mode = render_mode
 
         # Initialize the physical simulation
         self.space = pymunk.Space()
@@ -199,11 +200,8 @@ class RobotHandEnv(gym.Env):
         if self.scenario:
             self.scenario.clear_from_space(self.space)
 
-        if seed is not None:
-            self.scenario_config.seed = seed
-
         self.robot = Robot(self.robot_config)
-        self.scenario = ScenarioRegistry.load(self.scenario_data)
+        self.scenario = ScenarioRegistry.load(self.scenario_config)
         self.scenario.setup(self.space, self.robot)
 
         self.step_count = 0
@@ -240,20 +238,21 @@ class RobotHandEnv(gym.Env):
         return obs.model_dump(), reward, terminated, truncated, {}
 
     def render(self):
-        if self.scenario is None:
-            raise ValueError("Scenario is not initialized. Call reset() first.")
+        if self.render_mode == "human":
+            if self.scenario is None:
+                raise ValueError("Scenario is not initialized. Call reset() first.")
 
-        if self.renderer is None:
-            self.renderer = Renderer(config=self.env_config.render)
+            if self.renderer is None:
+                self.renderer = Renderer(config=self.env_config.render)
 
-        # Handle events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.renderer.close()
-                return
+            # Handle events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.renderer.close()
+                    return
 
-        # Draw logic
-        self.renderer.render(self.space, self.scenario)
+            # Draw logic
+            self.renderer.render(self.space, self.scenario)
 
     def close(self):
         if self.renderer:

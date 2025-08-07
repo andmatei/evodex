@@ -1,6 +1,7 @@
 import pymunk
 import pygame
 import inspect
+import numpy as np
 
 from abc import ABC, abstractmethod
 from typing import Annotated, Type, Optional, TypeVar, Generic
@@ -19,7 +20,6 @@ class ScenarioDimensionsConfig(BaseModel):
 
 class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
-    seed: Optional[int] = Field(None, description="Random seed for reproducibility")
     screen: ScenarioDimensionsConfig = Field(..., description="Scenario dimenisions")
     robot_start_position: Tuple[float, float] = Field(..., description="Start position")
 
@@ -30,10 +30,14 @@ C = TypeVar("C", bound=ScenarioConfig)
 class Scenario(Generic[C], ABC):
     def __init__(self, config: C):
         self.config = config
-        self.objects: list[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
+        
+        self._objects: list[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
+        self._random: np.random.Generator = np.random.default_rng()
 
     @abstractmethod
-    def setup(self, space: pymunk.Space, robot: Robot) -> None:
+    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+        self._random = np.random.default_rng(seed)
+        
         robot.add_to_space(space)
         robot.position = self.config.robot_start_position
 
@@ -58,7 +62,7 @@ class Scenario(Generic[C], ABC):
         pass
 
     def clear_from_space(self, space):
-        for item in reversed(self.objects):
+        for item in reversed(self._objects):
             if isinstance(item, pymunk.Body):
                 if item in space.bodies:
                     space.remove(item)
@@ -68,7 +72,7 @@ class Scenario(Generic[C], ABC):
             elif isinstance(item, pymunk.Constraint):
                 if item in space.constraints:
                     space.remove(item)
-        self.objects = []
+        self._objects = []
 
 
 class GroundScenario(Scenario[C], ABC):
@@ -77,8 +81,8 @@ class GroundScenario(Scenario[C], ABC):
         self.ground_shape = None
 
     @abstractmethod
-    def setup(self, space: pymunk.Space, robot: Robot) -> None:
-        super().setup(space, robot)
+    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+        super().setup(space, robot, seed)
 
         # Create a static ground segment
         ground_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -91,7 +95,7 @@ class GroundScenario(Scenario[C], ABC):
         ground_shape.friction = 1.0
         space.add(ground_body, ground_shape)
 
-        self.objects.extend([ground_body, ground_shape])
+        self._objects.extend([ground_body, ground_shape])
 
 
 class ScenarioRegistry:
@@ -121,27 +125,6 @@ class ScenarioRegistry:
         cls._scenarios[scenario_name] = scenario_class
         cls._configs[scenario_name] = config_class
         return scenario_class
-
-    @classmethod
-    def parse_config(cls, config: dict) -> ScenarioConfig:
-        """
-        Parses a scenario configuration dictionary and returns the corresponding Scenario instance.
-
-        Args:
-            config (dict): The scenario configuration dictionary.
-
-        Returns:
-            Scenario: An instance of the registered Scenario class.
-        """
-        scenario_name = config.get("name")
-        if scenario_name is None:
-            raise ValueError("Scenario configuration must contain a 'name' field.")
-
-        ConfigClass = cls._configs.get(scenario_name)
-        if ConfigClass is None:
-            raise ValueError(f"Scenario config class '{scenario_name}' not registered.")
-
-        return ConfigClass(**config)
 
     @classmethod
     def load(cls, config: dict) -> Scenario:

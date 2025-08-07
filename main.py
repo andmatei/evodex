@@ -42,6 +42,7 @@ if __name__ == "__main__":
             robot_config=robot_config,
             scenario_config=scenario_config,
             env_config=simulator_config,
+            render_mode="human",  # Set to 'human' for visual rendering
         ),
         observation=True,
         action=True,

@@ -70,6 +70,8 @@ class SegmentObservation(BaseModel):
     position: Tuple[float, float]
     velocity: Tuple[float, float]
 
+    is_touching: bool
+
 
 class FingerObservation(BaseModel):
     segments: List[SegmentObservation]

@@ -1,7 +1,5 @@
 import pymunk
 
-from evodex.simulation.robot.spaces import SegmentObservation
-
 from .config import SegmentConfig
 from .spaces import SegmentObservation
 from .constants import (
@@ -12,6 +10,7 @@ from .constants import (
 )
 
 
+# TODO: Add connect(segment) method to connect segments
 class Segment:
     def __init__(
         self,
@@ -26,6 +25,7 @@ class Segment:
         self.config = config
         self.is_fingertip = is_fingertip
         self.is_base = is_base
+        self.is_touching = False
 
         moment = pymunk.moment_for_box(
             self.config.mass, (self.config.length, self.config.width)
@@ -45,18 +45,18 @@ class Segment:
         local_tip = (self.config.length / 2, 0)
         return self.body.local_to_world(local_tip)
 
-    def remove_from_space(self, space):
+    def remove_from_space(self, space: pymunk.Space):
         """Remove the segment from the pymunk space."""
         if self.shape in space.shapes:
             space.remove(self.shape)
         if self.body in space.bodies:
             space.remove(self.body)
 
-    def add_to_space(self, space):
+    def add_to_space(self, space: pymunk.Space):
         """Add the segment to the pymunk space."""
         space.add(self.body, self.shape)
 
-    def set_filter_group(self, group):
+    def set_filter_group(self, group: int):
         """Set the collision group for the segment."""
         self.shape.filter = pymunk.ShapeFilter(
             group=group,
@@ -75,4 +75,13 @@ class Segment:
             joint_angular_velocity=self.body.angular_velocity,
             position=self.body.position,
             velocity=self.body.velocity,
+            is_touching=self.is_touching,
         )
+    
+    def connect(self, other: 'Segment'):
+        pass
+
+    @property
+    def is_connected(self) -> bool:
+        """Check if the segment is connected to another segment."""
+        return self.joint is not None and self.joint.a is not None and self.joint.b is not None

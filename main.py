@@ -1,3 +1,4 @@
+from math import pi
 import yaml
 import gymnasium as gym
 import numpy as np
@@ -27,16 +28,24 @@ def load_config(path: str) -> dict:
     return config
 
 
-# --- Main Execution (Example Usage) ---
-if __name__ == "__main__":
-    # 1. Load Configurations
-    print("➡️  Loading configurations...")
-    robot_config = load_config("configs/base_robot.yaml")
-    scenario_config = load_config("configs/move_cube_scenario.yaml")
-    simulator_config = load_config("configs/base_simulator.yaml")
+def make_env(
+        robot_config: dict,
+        scenario_config: dict,
+        simulator_config: dict,
+        render_mode: str = "human",
+)-> gym.Env:
+    """
+    Create a custom environment for the robot hand simulation.
 
-    # 2. Create and Check the Custom Environment
-    print("➡️  Initializing environment...")
+    Args:
+        robot_config (dict): Configuration for the robot.
+        scenario_config (dict): Configuration for the scenario.
+        simulator_config (dict): Configuration for the simulator.
+        render_mode (str): Rendering mode for the environment.
+
+    Returns:
+        gym.Env: The custom environment instance.
+    """
     env: gym.Env = flatten(
         RobotHandEnv(
             robot_config=robot_config,
@@ -48,12 +57,35 @@ if __name__ == "__main__":
         action=True,
     )
     env = RescaleAction(env, np.float32(-1.0), np.float32(1.0))
+    return env
+
+
+# --- Main Execution (Example Usage) ---
+if __name__ == "__main__":
+    # 1. Load Configurations
+    print("➡️  Loading configurations...")
+    robot_config = load_config("configs/base_robot.yaml")
+    scenario_config = load_config("configs/move_cube_scenario.yaml")
+    simulator_config = load_config("configs/base_simulator.yaml")
+
+    # 2. Create and Check the Custom Environment
+    print("➡️  Initializing environment...")
     vec_env = make_vec_env(
-        lambda: env,
-        n_envs=1,
+        lambda: make_env(
+            robot_config=robot_config,
+            scenario_config=scenario_config,
+            simulator_config=simulator_config,
+            render_mode="human",
+        ),
+        n_envs=16,
     )
 
-    check_env(env, warn=True)
+    check_env(make_env(
+        robot_config=robot_config,
+        scenario_config=scenario_config,
+        simulator_config=simulator_config,
+        render_mode="human",
+    ), warn=True)
 
     # 3. Define the PPO Agent
     # We'll save logs and the trained model in a dedicated directory
@@ -61,6 +93,7 @@ if __name__ == "__main__":
     os.makedirs(log_dir, exist_ok=True)
 
     print("➡️  Defining the PPO model...")
+    policy_kwargs = dict(net_arch=dict(pi=[256, 256], vf=[256, 256]))
     model = PPO(
         "MlpPolicy",  # Standard policy for continuous action/observation spaces
         vec_env,  # The vectorized environment
@@ -73,13 +106,14 @@ if __name__ == "__main__":
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
-        ent_coef=0.0,
+        ent_coef=0.01,
+        policy_kwargs=policy_kwargs,
     )
 
     # 4. Train the Agent
     print("🚀 Starting training...")
     # The total number of steps the agent will be trained for
-    TRAINING_TIMESTEPS = 25000
+    TRAINING_TIMESTEPS = 2_000_000
     model.learn(total_timesteps=TRAINING_TIMESTEPS)
 
     # 5. Save the Trained Model

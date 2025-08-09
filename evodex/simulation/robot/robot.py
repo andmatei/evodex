@@ -1,3 +1,4 @@
+from .collision import SegmentCollisionHandler
 from .finger import Finger
 from .base import Base
 from .config import RobotConfig
@@ -21,9 +22,8 @@ class Robot:
                 finger_config,
             )
             self.fingers.append(finger)
+            SegmentCollisionHandler.add_finger(finger)
 
-        self.num_motors_per_finger: list[int] = [f.num_segments for f in self.fingers]
-        self.total_motors = sum(self.num_motors_per_finger)
 
     @property
     def angle(self) -> float:
@@ -80,3 +80,6 @@ class Robot:
         self.base.add_to_space(space)
         for finger in self.fingers:
             finger.add_to_space(space)
+
+        # Register collision handlers
+        self._segment_collision_handler.register(space)

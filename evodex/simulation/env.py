@@ -137,6 +137,9 @@ class RobotHandEnv(gym.Env):
                                                             shape=(2,),
                                                             dtype=np.float32,
                                                         ),
+                                                        "is_touching": spaces.MultiBinary(
+                                                            n=1
+                                                        ),
                                                     }
                                                 )
                                                 for _ in finger.segments

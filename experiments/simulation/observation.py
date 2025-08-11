@@ -1,7 +1,6 @@
 import gymnasium as gym
 
-from evodex.simulation import RobotHandEnv
-from evodex.simulation.robot.spaces import Action, BaseAction
+from evodex.simulation import RobotHandEnv, Observation
 
 from experiments.utils import load_config
 
@@ -22,15 +21,5 @@ if __name__ == "__main__":
         render_mode="human",  # Set to 'human' for visual rendering
     )
 
-    action = Action(
-        base=BaseAction(
-            velocity=(0.0, 0.0),  # Base velocity in x and y directions
-            omega=0.0,  # Base angular velocity
-        ),
-        fingers=[[0.0, 0.0], [0.0, 0.0, 0.2]],  # Example finger motor rates
-    )
-
     obs, _ = env.reset()
-    while True:
-        obs, reward, terminated, truncated, info = env.step(action.model_dump())
-        env.render()
+    print(f"Initial observation: {obs}")

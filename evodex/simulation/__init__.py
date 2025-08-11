@@ -1,4 +1,5 @@
 from .env import RobotHandEnv
+from .types import Observation
 
 import gymnasium as gym
 

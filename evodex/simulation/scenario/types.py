@@ -19,7 +19,3 @@ class Observation(BaseModel):
     angular_velocity: float = Field(
         ..., description="Angular velocity of the object being observed"
     )
-
-    data: Optional[Dict[str, Any]] = Field(
-        default=None, description="Optional test field for demonstration purposes"
-    )

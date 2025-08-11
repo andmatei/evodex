@@ -26,7 +26,6 @@ class MoveCubeToTargetScenarioConfig(ScenarioConfig):
     )
 
 
-# TODO: Add goal for goal-oriented RL
 @ScenarioRegistry.register
 class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
     """
@@ -41,7 +40,9 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_body: Optional[pymunk.Body] = None
         self.cube_shape: Optional[pymunk.Shape] = None
 
-    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+    def setup(
+        self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None
+    ) -> None:
         super().setup(space, robot, seed)
 
         if self.config.target_pos is None:
@@ -89,8 +90,8 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             if dist_to_target < self.config.success_radius:
                 reward += 100.0
 
-        action_penalty = np.sum(np.square(action.flatten())) * 0.001
-        reward -= action_penalty
+        # action_penalty = np.sum(np.square(action.flatten())) * 0.001
+        # reward -= action_penalty
         return reward
 
     def is_terminated(self, robot: Robot) -> bool:

@@ -24,12 +24,11 @@ class Robot:
             self.fingers.append(finger)
             SegmentCollisionHandler.add_finger(finger)
 
-
     @property
     def angle(self) -> float:
         """Get the robot's base rotation angle."""
         return self.base.angle
-    
+
     @angle.setter
     def angle(self, angle: float) -> None:
         """Set the robot's base rotation angle."""
@@ -59,9 +58,7 @@ class Robot:
             try:
                 self.fingers[i].act(finger_action)
             except ValueError as e:
-                raise ValueError(
-                    f"Error in finger {i} action: {str(e)}"
-                ) from e
+                raise ValueError(f"Error in finger {i} action: {str(e)}") from e
 
     def get_observation(self) -> Observation:
         return Observation(
@@ -82,4 +79,4 @@ class Robot:
             finger.add_to_space(space)
 
         # Register collision handlers
-        self._segment_collision_handler.register(space)
+        SegmentCollisionHandler.register(space)

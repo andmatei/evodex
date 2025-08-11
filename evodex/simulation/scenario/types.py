@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Any, Dict, Optional, Tuple
 
-# Add relative observations (rotation position) with the robot
+
+# TODO: Add relative observations (rotation position) with the robot
 class Observation(BaseModel):
     """
     Base class for observations in scenarios.

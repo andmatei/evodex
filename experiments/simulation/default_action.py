@@ -50,7 +50,7 @@ if __name__ == "__main__":
             velocity=(0.0, 0.0),  # Base velocity in x and y directions
             omega=0.0,  # Base angular velocity
         ),
-        fingers=[[0.0, 0.0], [0.0, 0.0, .2]],  # Example finger motor rates
+        fingers=[[0.0, 0.0], [0.0, 0.0, 0.2]],  # Example finger motor rates
     )
 
     obs, _ = env.reset()

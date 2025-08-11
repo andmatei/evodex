@@ -26,3 +26,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.2.0"
 
+
+[[tool.poetry.source]]
+name = "pytorch_cuda"
+url = "https://download.pytorch.org/whl/cu126"
+priority = "explicit"
+

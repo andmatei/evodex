@@ -41,11 +41,11 @@ class Scenario(Generic[C], ABC):
     ) -> None:
         self._random = np.random.default_rng(seed)
 
+        robot.collision.listen(COLLISION_TYPE_GRASPING_OBJECT)
+
         robot.add_to_space(space)
         robot.position = self.config.robot_start_position
         robot.angle = np.pi / 2
-
-        robot.collision.listen(COLLISION_TYPE_GRASPING_OBJECT)
 
     @abstractmethod
     def get_reward(self, robot: Robot, action: Action) -> float:

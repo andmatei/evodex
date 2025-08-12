@@ -12,6 +12,8 @@ class Robot:
         self.base = Base(self.config.base)
         self.base.set_finger_count(len(self.config.fingers))
 
+        self.collision_handler = SegmentCollisionHandler()
+
         self.fingers: list[Finger] = []
         for i, finger_config in enumerate(self.config.fingers):
             attach_point = self.base.finger_attachment_points_local[i]
@@ -22,7 +24,9 @@ class Robot:
                 finger_config,
             )
             self.fingers.append(finger)
-            SegmentCollisionHandler.add_finger(finger)
+
+            # Register the finger segments for collision handling
+            self.collision_handler.add_finger(finger)
 
     @property
     def angle(self) -> float:
@@ -79,4 +83,4 @@ class Robot:
             finger.add_to_space(space)
 
         # Register collision handlers
-        SegmentCollisionHandler.register(space)
+        self.collision_handler.register(space)

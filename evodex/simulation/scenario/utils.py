@@ -1,7 +1,6 @@
 # --- Collision Types ---
 COLLISION_TYPE_GROUND = 0
-COLLISION_TYPE_SCENARIO_OBJECT_START = 100
-COLLISION_TYPE_SCENARIO_STATIC_START = 200
+COLLISION_TYPE_GRASPING_OBJECT = 1
 
 
 def pymunk_to_pygame_coord(point, height, scale=1.0):

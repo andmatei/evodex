@@ -1,4 +1,4 @@
-from .collision import SegmentCollisionHandler
+from .collision import RobotCollisionHandler
 from .finger import Finger
 from .base import Base
 from .config import RobotConfig
@@ -12,7 +12,7 @@ class Robot:
         self.base = Base(self.config.base)
         self.base.set_finger_count(len(self.config.fingers))
 
-        self.collision_handler = SegmentCollisionHandler()
+        self.collision = RobotCollisionHandler()
 
         self.fingers: list[Finger] = []
         for i, finger_config in enumerate(self.config.fingers):
@@ -26,7 +26,7 @@ class Robot:
             self.fingers.append(finger)
 
             # Register the finger segments for collision handling
-            self.collision_handler.add_finger(finger)
+            self.collision.track_finger(finger)
 
     @property
     def angle(self) -> float:
@@ -83,4 +83,4 @@ class Robot:
             finger.add_to_space(space)
 
         # Register collision handlers
-        self.collision_handler.register(space)
+        self.collision.activate(space)

@@ -6,7 +6,7 @@ from pydantic import Field
 from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
-from .utils import COLLISION_TYPE_SCENARIO_OBJECT_START, pymunk_to_pygame_coord
+from .utils import COLLISION_TYPE_GRASPING_OBJECT, pymunk_to_pygame_coord
 from .types import Observation
 
 from evodex.simulation.robot import Robot, Action
@@ -76,7 +76,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         self.cube_shape = pymunk.Poly.create_box(self.cube_body, self.config.cube_size)
         self.cube_shape.friction = 0.7
         self.cube_shape.elasticity = 0.3
-        self.cube_shape.collision_type = COLLISION_TYPE_SCENARIO_OBJECT_START + 1
+        self.cube_shape.collision_type = COLLISION_TYPE_GRASPING_OBJECT
         space.add(self.cube_body, self.cube_shape)
 
         self._objects.extend([self.cube_body, self.cube_shape])

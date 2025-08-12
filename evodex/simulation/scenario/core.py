@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Tuple, Union
 
 from .types import Observation
+from .utils import COLLISION_TYPE_GRASPING_OBJECT
 
 from evodex.simulation.robot import Robot, Action
 
@@ -30,17 +31,21 @@ C = TypeVar("C", bound=ScenarioConfig)
 class Scenario(Generic[C], ABC):
     def __init__(self, config: C):
         self.config = config
-        
+
         self._objects: list[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
         self._random: np.random.Generator = np.random.default_rng()
 
     @abstractmethod
-    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+    def setup(
+        self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None
+    ) -> None:
         self._random = np.random.default_rng(seed)
-        
+
         robot.add_to_space(space)
         robot.position = self.config.robot_start_position
         robot.angle = np.pi / 2
+
+        robot.collision.listen(COLLISION_TYPE_GRASPING_OBJECT)
 
     @abstractmethod
     def get_reward(self, robot: Robot, action: Action) -> float:
@@ -82,7 +87,9 @@ class GroundScenario(Scenario[C], ABC):
         self.ground_shape = None
 
     @abstractmethod
-    def setup(self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None) -> None:
+    def setup(
+        self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None
+    ) -> None:
         super().setup(space, robot, seed)
 
         # Create a static ground segment

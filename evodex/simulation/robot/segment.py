@@ -1,7 +1,11 @@
+import numpy as np
 import pymunk
+
+from evodex.simulation.robot.base import Base
 
 from .config import SegmentConfig
 from .spaces import SegmentObservation
+from .connection import Connection
 from .constants import (
     CAT_FINGER_BASE,
     CAT_FINGER_SEGMENT,
@@ -14,9 +18,7 @@ from .constants import (
 class Segment:
     def __init__(
         self,
-        position,
         config: SegmentConfig,
-        angle=0.0,
         is_fingertip=False,
         is_base=False,
     ):
@@ -31,8 +33,6 @@ class Segment:
             self.config.mass, (self.config.length, self.config.width)
         )
         self.body = pymunk.Body(self.config.mass, moment)
-        self.body.position = position
-        self.body.angle = angle
 
         self.shape = pymunk.Poly.create_box(
             self.body, (self.config.length, self.config.width)
@@ -77,11 +77,51 @@ class Segment:
             velocity=self.body.velocity,
             is_touching=self.is_touching,
         )
-    
-    def connect(self, other: 'Segment'):
-        pass
+
+    def connect(self, other: "Segment") -> Connection:
+        attach_point = other.get_tip_position()
+        return self._connect(other.body, attach_point, other.angle)
+
+    def attach(self, base: Base, attach_point: pymunk.Vec2d) -> Connection:
+        local_attach_point = base.body.world_to_local(attach_point)
+        return self._connect(base.body, local_attach_point, base.angle)
+
+    def _connect(
+        self, other: pymunk.Body, attach_point: pymunk.Vec2d, angle: float
+    ) -> Connection:
+        pos_x = attach_point[0] + self.config.length / 2 * np.cos(angle)
+        pos_y = attach_point[1] + self.config.length / 2 * np.sin(angle)
+
+        self.position = (pos_x, pos_y)
+        self.angle = angle
+
+        return Connection(other, self.body, attach_point)
 
     @property
     def is_connected(self) -> bool:
         """Check if the segment is connected to another segment."""
-        return self.joint is not None and self.joint.a is not None and self.joint.b is not None
+        return (
+            self.joint is not None
+            and self.joint.a is not None
+            and self.joint.b is not None
+        )
+
+    @property
+    def position(self) -> tuple[float, float]:
+        """Get the position of the segment's body."""
+        return self.body.position.x, self.body.position.y
+
+    @position.setter
+    def position(self, value: tuple[float, float]):
+        """Set the position of the segment's body."""
+        self.body.position = pymunk.Vec2d(value[0], value[1])
+
+    @property
+    def angle(self) -> float:
+        """Get the angle of the segment's body."""
+        return self.body.angle
+
+    @angle.setter
+    def angle(self, value: float):
+        """Set the angle of the segment's body."""
+        self.body.angle = value

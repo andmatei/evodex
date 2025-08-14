@@ -28,7 +28,7 @@ class Finger:
         current_attach_point = base.local_to_world(attach_point)
         for i, segment_config in enumerate(self.config.segments):
             is_fingertip = i == self.num_segments - 1
-            if_base = i == 0
+            is_base = i == 0
 
             if i == 0:
                 initial_angle = base.angle
@@ -47,13 +47,14 @@ class Finger:
                 segment_pos_y = prev_segment_tip[1] + (
                     segment_config.length / 2
                 ) * np.sin(initial_angle)
+
             segment = Segment(
-                (segment_pos_x, segment_pos_y),
                 segment_config,
-                angle=initial_angle,
                 is_fingertip=is_fingertip,
-                is_base=if_base,
+                is_base=is_base,
             )
+            segment.position = (segment_pos_x, segment_pos_y)
+            segment.angle = initial_angle
             segment.set_filter_group(self.index + FINGER_GROUP_START)
             self.segments.append(segment)
 
@@ -80,7 +81,7 @@ class Finger:
             self.joints.extend([joint, limit_joint])
 
             motor = pymunk.SimpleMotor(prev_body, segment.body, 0)
-            motor.max_force = 10000000 # TODO: Add either in config or as a constant
+            motor.max_force = 10000000  # TODO: Add either in config or as a constant
             self.motors.append(motor)
 
             prev_body = segment.body
@@ -119,7 +120,7 @@ class Finger:
     def add_to_space(self, space):
         """Add the finger and its segments to the pymunk space."""
         for segment in self.segments:
-            space.add(segment.body, segment.shape)
+            segment.add_to_space(space)
         for joint in self.joints:
             space.add(joint)
         for motor in self.motors:

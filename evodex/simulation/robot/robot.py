@@ -19,7 +19,7 @@ class Robot:
             attach_point = self.base.finger_attachment_points_local[i]
             finger = Finger(
                 i,
-                self.base.body,
+                self.base,
                 attach_point,
                 finger_config,
             )

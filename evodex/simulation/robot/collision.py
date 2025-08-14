@@ -22,7 +22,6 @@ class RobotCollisionHandler:
 
     def track_finger(self, finger: Finger) -> None:
         """Add a finger to the collision handler."""
-        print(f"Registering finger {finger} with segments {len(finger.segments)}")
         for segment in finger.segments:
             self.track_segment(segment)
 
@@ -46,8 +45,6 @@ class RobotCollisionHandler:
         """Handle the beginning of a contact between a segment and an object."""
         shape_a, shape_b = arbiter.shapes
 
-        print(f"Collision detected between {shape_a} and {shape_b}")
-
         segment = self._shape_to_segment_map.get(
             shape_a
         ) or self._shape_to_segment_map.get(shape_b)
@@ -61,8 +58,6 @@ class RobotCollisionHandler:
         self, arbiter: pymunk.Arbiter, space: pymunk.Space, data: dict
     ) -> None:
         """Handle the end of a contact between a segment and an object."""
-
-        print("Collision ended")
 
         shape_a, shape_b = arbiter.shapes
         segment = self._shape_to_segment_map.get(

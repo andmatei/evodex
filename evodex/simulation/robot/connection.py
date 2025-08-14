@@ -3,15 +3,21 @@ from dataclasses import dataclass
 
 
 class Connection:
-    body_a: pymunk.Body
-    body_b: pymunk.Body
+    """A connection between two bodies with a joint and a motor."""
 
     def __init__(
-        self, body_a: pymunk.Body, body_b: pymunk.Body, joint_pos: pymunk.Vec2d
+        self,
+        body_a: pymunk.Body,
+        body_b: pymunk.Body,
+        joint_pos: pymunk.Vec2d,
+        angle_limit: tuple[float, float] | None = None,
     ):
         self.body_a = body_a
         self.body_b = body_b
         self.joint_pos = joint_pos
+        self.angle_limit = angle_limit
+
+        self._connect()
 
     def _connect(self) -> None:
         """Connect the two bodies with a pivot joint."""
@@ -25,14 +31,36 @@ class Connection:
             anchor_b_local_for_joint,
         )
 
-        # TODO: Add rotary limit joint if needed
+        if self.angle_limit is not None:
+            self.limit_joint = pymunk.RotaryLimitJoint(
+                self.body_a, self.body_b, *self.angle_limit
+            )
 
         self.motor = pymunk.SimpleMotor(self.body_a, self.body_b, 0)
         self.motor.max_force = 10000000  # TODO: Add either in config or as
 
+    @property
+    def rate(self) -> float:
+        """Get the current motor rate."""
+        return self.motor.rate
+
+    @rate.setter
+    def rate(self, value: float) -> None:
+        """Set the motor rate."""
+        self.motor.rate = value
+
+    @property
+    def angle(self) -> float:
+        """Get the angle of the joint."""
+        return self.body_a.angle - self.body_b.angle
+
     def add_to_space(self, space: pymunk.Space) -> None:
         """Add the connection joint and motor to the pymunk space."""
-        space.add(self.joint, self.motor)
+        space.add(
+            self.joint,
+            self.motor,
+            self.limit_joint if hasattr(self, "limit_joint") else None,
+        )
 
     def remove_from_space(self, space: pymunk.Space) -> None:
         """Remove the connection joint and motor from the pymunk space."""

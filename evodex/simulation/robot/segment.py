@@ -22,7 +22,7 @@ class Segment:
         is_fingertip=False,
         is_base=False,
     ):
-        self.joint: pymunk.constraints.PivotJoint | None = None
+        self.connection: Connection | None = None
 
         self.config = config
         self.is_fingertip = is_fingertip
@@ -65,13 +65,11 @@ class Segment:
         )
 
     def get_observation(self) -> SegmentObservation:
-        if self.joint is None:
-            raise ValueError("Segment joint is not set. Cannot get observation.")
-
-        relative_angle = self.joint.b.angle - self.joint.a.angle
+        if self.connection is None:
+            raise ValueError("Segment connection is not set. Cannot get observation.")
 
         return SegmentObservation(
-            joint_angle=relative_angle,
+            joint_angle=self.connection.angle,
             joint_angular_velocity=self.body.angular_velocity,
             position=self.body.position,
             velocity=self.body.velocity,
@@ -80,31 +78,29 @@ class Segment:
 
     def connect(self, other: "Segment") -> Connection:
         attach_point = other.get_tip_position()
-        return self._connect(other.body, attach_point, other.angle)
+        self.connection = self._connect(other.body, attach_point, other.angle)
+        return self.connection
 
     def attach(self, base: Base, attach_point: pymunk.Vec2d) -> Connection:
         local_attach_point = base.body.world_to_local(attach_point)
-        return self._connect(base.body, local_attach_point, base.angle)
+        self.connection = self._connect(base.body, local_attach_point, base.angle)
+        return self.connection
 
     def _connect(
         self, other: pymunk.Body, attach_point: pymunk.Vec2d, angle: float
     ) -> Connection:
-        pos_x = attach_point[0] + self.config.length / 2 * np.cos(angle)
-        pos_y = attach_point[1] + self.config.length / 2 * np.sin(angle)
+        pos_x = attach_point.x + self.config.length / 2 * np.cos(angle)
+        pos_y = attach_point.y + self.config.length / 2 * np.sin(angle)
 
         self.position = (pos_x, pos_y)
         self.angle = angle
 
-        return Connection(other, self.body, attach_point)
+        return Connection(other, self.body, attach_point, self.config.joint_angle_limit)
 
     @property
     def is_connected(self) -> bool:
         """Check if the segment is connected to another segment."""
-        return (
-            self.joint is not None
-            and self.joint.a is not None
-            and self.joint.b is not None
-        )
+        return self.connection is not None
 
     @property
     def position(self) -> tuple[float, float]:

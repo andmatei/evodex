@@ -112,8 +112,6 @@ class ScenarioRegistry:
 
     @classmethod
     def register(cls, scenario_class: Type[Scenario]) -> Type[Scenario]:
-        print(f"Registering scenario: {scenario_class.__name__}")
-
         sig = inspect.signature(scenario_class.__init__)
         config = sig.parameters.get("config", None)
 

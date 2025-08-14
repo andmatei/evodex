@@ -33,12 +33,12 @@ class Base:
             mask=MASK_ROBOT_BASE,
         )
 
-        self.finger_attachment_points_local: List[Tuple[float, float]] = []
+        self.finger_attachment_points_local: List[pymunk.Vec2d] = []
 
     @property
     def angle(self) -> float:
         return self.body.angle
-    
+
     @angle.setter
     def angle(self, angle: float) -> None:
         self.body.angle = angle
@@ -65,7 +65,7 @@ class Base:
             local_y = (
                 -self.config.height / 2 + i * vertical_spacing if num_fingers > 1 else 0
             )
-            self.finger_attachment_points_local.append((local_x, local_y))
+            self.finger_attachment_points_local.append(pymunk.Vec2d(local_x, local_y))
 
     def remove_from_space(self, space):
         """Remove the base from the pymunk space."""

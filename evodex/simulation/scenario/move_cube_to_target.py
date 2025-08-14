@@ -98,7 +98,6 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         if self.cube_body:
             cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
             if np.linalg.norm(cube_pos - self.target_pos) < self.config.success_radius:
-                print("MoveCubeScenario: Target reached!")
                 return True
         return False
 

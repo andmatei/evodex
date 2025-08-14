@@ -10,7 +10,7 @@ class Connection:
         body_a: pymunk.Body,
         body_b: pymunk.Body,
         joint_pos: pymunk.Vec2d,
-        angle_limit: tuple[float, float] | None = None,
+        angle_limit: tuple[float, float],
     ):
         self.body_a = body_a
         self.body_b = body_b
@@ -31,10 +31,9 @@ class Connection:
             anchor_b_local_for_joint,
         )
 
-        if self.angle_limit is not None:
-            self.limit_joint = pymunk.RotaryLimitJoint(
-                self.body_a, self.body_b, *self.angle_limit
-            )
+        self.limit_joint = pymunk.RotaryLimitJoint(
+            self.body_a, self.body_b, *self.angle_limit
+        )
 
         self.motor = pymunk.SimpleMotor(self.body_a, self.body_b, 0)
         self.motor.max_force = 10000000  # TODO: Add either in config or as
@@ -59,7 +58,7 @@ class Connection:
         space.add(
             self.joint,
             self.motor,
-            self.limit_joint if hasattr(self, "limit_joint") else None,
+            self.limit_joint,
         )
 
     def remove_from_space(self, space: pymunk.Space) -> None:
@@ -68,3 +67,5 @@ class Connection:
             space.remove(self.joint)
         if self.motor in space.constraints:
             space.remove(self.motor)
+        if self.limit_joint in space.constraints:
+            space.remove(self.limit_joint)

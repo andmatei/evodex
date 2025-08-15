@@ -12,6 +12,7 @@ from evodex.simulation.robot.spaces import BaseObservation
 class Base:
     def __init__(self, config: BaseConfig):
         self.config = config
+        self.is_touching = False
 
         moment = pymunk.moment_for_box(
             self.config.mass, (self.config.width, self.config.height)

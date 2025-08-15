@@ -2,23 +2,28 @@ import pymunk
 
 from .segment import Segment
 from .finger import Finger
-from .constants import COLLISION_TYPE_ROBOT_SEGMENT
+from .base import Base
+from .constants import COLLISION_TYPE_ROBOT_COMPONENT
 
 
-# TODO: Add base collision
 class RobotCollisionHandler:
-    _shape_to_segment_map: dict[pymunk.Shape, Segment]
+    _shape_to_component_map: dict[pymunk.Shape, Segment | Base]
     _object_types: set[int]
 
     def __init__(self):
         """Initialize the collision handler."""
-        self._shape_to_segment_map = {}
+        self._shape_to_component_map = {}
         self._object_types = set()
+
+    def track_base(self, base: Base) -> None:
+        """Add the robot base to the collision handler."""
+        base.shape.collision_type = COLLISION_TYPE_ROBOT_COMPONENT
+        self._shape_to_component_map[base.shape] = base
 
     def track_segment(self, segment: Segment) -> None:
         """Add a segment to the collision handler."""
-        segment.shape.collision_type = COLLISION_TYPE_ROBOT_SEGMENT
-        self._shape_to_segment_map[segment.shape] = segment
+        segment.shape.collision_type = COLLISION_TYPE_ROBOT_COMPONENT
+        self._shape_to_component_map[segment.shape] = segment
 
     def track_finger(self, finger: Finger) -> None:
         """Add a finger to the collision handler."""
@@ -33,7 +38,7 @@ class RobotCollisionHandler:
         """Register collision handlers for the robot segments."""
         for object_type in self._object_types:
             handler = space.add_collision_handler(
-                COLLISION_TYPE_ROBOT_SEGMENT, object_type
+                COLLISION_TYPE_ROBOT_COMPONENT, object_type
             )
 
             handler.begin = self._on_begin_contact
@@ -45,12 +50,12 @@ class RobotCollisionHandler:
         """Handle the beginning of a contact between a segment and an object."""
         shape_a, shape_b = arbiter.shapes
 
-        segment = self._shape_to_segment_map.get(
+        component = self._shape_to_component_map.get(
             shape_a
-        ) or self._shape_to_segment_map.get(shape_b)
+        ) or self._shape_to_component_map.get(shape_b)
 
-        if segment:
-            segment.is_touching = True
+        if component:
+            component.is_touching = True
 
         return True
 
@@ -60,9 +65,9 @@ class RobotCollisionHandler:
         """Handle the end of a contact between a segment and an object."""
 
         shape_a, shape_b = arbiter.shapes
-        segment = self._shape_to_segment_map.get(
+        component = self._shape_to_component_map.get(
             shape_a
-        ) or self._shape_to_segment_map.get(shape_b)
+        ) or self._shape_to_component_map.get(shape_b)
 
-        if segment:
-            segment.is_touching = False
+        if component:
+            component.is_touching = False

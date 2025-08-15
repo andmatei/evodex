@@ -9,10 +9,11 @@ class Robot:
     def __init__(self, config: RobotConfig):
         self.config = config
 
+        self.collision = RobotCollisionHandler()
+
         self.base = Base(self.config.base)
         self.base.set_finger_count(len(self.config.fingers))
-
-        self.collision = RobotCollisionHandler()
+        self.collision.track_base(self.base)
 
         self.fingers: list[Finger] = []
         for i, finger_config in enumerate(self.config.fingers):

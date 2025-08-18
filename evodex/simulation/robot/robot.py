@@ -1,8 +1,10 @@
+import pymunk
+
 from .collision import RobotCollisionHandler
 from .finger import Finger
 from .base import Base
 from .config import RobotConfig
-from .spaces import Action, ExtrinsicObservation, IntrinsicObservation, Observation
+from .spaces import Action, ExtrinsicObservation, IntrinsicObservation
 
 
 class Robot:
@@ -65,21 +67,15 @@ class Robot:
             except ValueError as e:
                 raise ValueError(f"Error in finger {i} action: {str(e)}") from e
 
-    def get_observation(self) -> Observation:
-        return Observation(
-            base=self.base.get_observation(),
-            fingers=[finger.get_observation() for finger in self.fingers],
-        )
-
     def get_intrinsic_observation(self) -> IntrinsicObservation:
         return IntrinsicObservation(
             fingers=[finger.get_intrinsic_observation() for finger in self.fingers]
         )
 
-    def get_extrinsic_observation(self) -> ExtrinsicObservation:
+    def get_extrinsic_observation(self, reference_body: pymunk.Body) -> ExtrinsicObservation:
         return ExtrinsicObservation(
             base=self.base.get_observation(),
-            fingertips=[finger.get_fingertip_observation() for finger in self.fingers],
+            fingertips=[finger.get_extrinsic_observation(reference_body) for finger in self.fingers],
         )
 
     def remove_from_space(self, space):

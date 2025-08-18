@@ -7,11 +7,11 @@ from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_GRASPING_OBJECT, pymunk_to_pygame_coord
-from .types import Observation, Goal
+from .types import Goal, Observation, ObjectObservation
 
 from evodex.simulation.robot import Robot, Action
 
-
+# TODO: Add the goal in the scenario config
 class MoveCubeToTargetScenarioConfig(ScenarioConfig):
     name: Literal["move_cube_to_target"] = "move_cube_to_target"
     target_pos: Optional[Tuple[float, float]] = Field(
@@ -107,15 +107,35 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             raise ValueError("Scenario is not initialized.")
 
         return Observation(
-            velocity=tuple(self.cube_body.velocity),
-            position=tuple(self.cube_body.position),
+            object=ObjectObservation(
+                position=(self.cube_body.position.x, self.cube_body.position.y),
+                velocity=(self.cube_body.velocity.x, self.cube_body.velocity.y),
+                angle=self.cube_body.angle,
+                angular_velocity=self.cube_body.angular_velocity,
+                size=self.config.cube_size,
+            ),
+            robot=robot.get_extrinsic_observation(self.cube_body),
+        )
+    
+    def get_goal(self, robot: Robot) -> Goal:
+        """Get the target position as the goal."""
+        return Goal(
+            position=self.target_pos,
+            velocity=(0, 0),  # No velocity goal for static target
+            angle=0.0,  # No angle goal for static target
+            angular_velocity=0.0,  # No angular velocity goal for static target
+        )
+    
+    def get_achieved_goal(self, robot: Robot) -> Goal:
+        """Get the current position of the cube as the achieved goal."""
+        if not self.cube_body:
+            raise ValueError("Scenario is not initialized.")
+        
+        return Goal(
+            position=(self.cube_body.position.x, self.cube_body.position.y),
+            velocity=(self.cube_body.velocity.x, self.cube_body.velocity.y),
             angle=self.cube_body.angle,
             angular_velocity=self.cube_body.angular_velocity,
-            base_to_obj=tuple(self.cube_body.position - robot.base.position),
-            fingertips_to_obj=[
-                tuple(self.cube_body.position - finger.get_fingertip_position())
-                for finger in robot.fingers
-            ],
         )
 
     def render(self, screen):

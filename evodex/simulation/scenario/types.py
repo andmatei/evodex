@@ -1,3 +1,4 @@
+from matplotlib.mlab import angle_spectrum
 from pydantic import BaseModel, Field
 from typing import Tuple
 from evodex.simulation.robot.spaces import ExtrinsicObservation as RobotObservation
@@ -13,6 +14,22 @@ class ObjectObservation(BaseModel):
     angle: float = Field(..., description="Angle of the object being observed")
     angular_velocity: float = Field(
         ..., description="Angular velocity of the object being observed"
+    )
+    size: Tuple[float, float] = Field(
+        ..., description="Size of the object being observed (width, height)"
+    )
+
+
+class Goal(BaseModel):
+    position: Tuple[float, float] = Field(
+        ..., description="Target position for the robot to reach"
+    )
+    angle: float = Field(..., description="Target angle for the robot to achieve")
+    angular_velocity: float = Field(
+        ..., description="Target angular velocity for the robot to achieve"
+    )
+    velocity: Tuple[float, float] = Field(
+        ..., description="Target velocity for the robot to achieve"
     )
 
 

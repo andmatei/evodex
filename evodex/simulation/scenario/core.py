@@ -63,6 +63,14 @@ class Scenario(Generic[C], ABC):
     def render(self, screen: pygame.Surface) -> None:
         pass
 
+    @abstractmethod
+    def get_goal(self, robot: Robot) -> Goal:
+        pass
+
+    @abstractmethod
+    def get_achieved_goal(self, robot: Robot) -> Goal:
+        pass
+
     def clear_from_space(self, space):
         for item in reversed(self._objects):
             if isinstance(item, pymunk.Body):
@@ -75,19 +83,6 @@ class Scenario(Generic[C], ABC):
                 if item in space.constraints:
                     space.remove(item)
         self._objects = []
-
-
-class HERScenario(Scenario[C], ABC):
-    def __init__(self, config: C):
-        super().__init__(config)
-
-    @abstractmethod
-    def get_achieved_goal(self, robot: Robot) -> Goal:
-        pass
-
-    @abstractmethod
-    def get_desired_goal(self, robot: Robot) -> Goal:
-        pass
 
 
 class GroundScenario(Scenario[C], ABC):

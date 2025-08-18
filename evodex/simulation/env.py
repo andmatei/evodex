@@ -1,3 +1,4 @@
+from re import A
 import numpy as np
 import gymnasium as gym
 import pymunk
@@ -9,7 +10,7 @@ from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
 from .scenario import Scenario, ScenarioRegistry
 from .config import EnvConfig
-from .types import Observation
+from .types import Observation, RobotObservation
 
 
 class RobotHandEnv(gym.Env):
@@ -80,45 +81,91 @@ class RobotHandEnv(gym.Env):
             {
                 "observation": spaces.Dict(
                     {
-                        "base": spaces.Dict(
+                        "extrinsic": spaces.Dict(
                             {
-                                "position": spaces.Box(
-                                    low=-np.inf,
-                                    high=np.inf,
-                                    shape=(2,),
-                                    dtype=np.float32,
-                                ),
-                                "angle": spaces.Box(
-                                    low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
-                                ),
-                                "velocity": spaces.Box(
-                                    low=-np.inf,
-                                    high=np.inf,
-                                    shape=(2,),
-                                    dtype=np.float32,
-                                ),
-                                "angular_velocity": spaces.Box(
-                                    low=-np.inf,
-                                    high=np.inf,
-                                    shape=(1,),
-                                    dtype=np.float32,
-                                ),
-                            }
-                        ),
-                        "fingers": spaces.Tuple(
-                            [
-                                spaces.Dict(
+                                "robot": spaces.Dict(
                                     {
-                                        "segments": spaces.Tuple(
+                                        "base": spaces.Dict(
+                                            {
+                                                "position": spaces.Box(
+                                                    low=-np.inf,
+                                                    high=np.inf,
+                                                    shape=(2,),
+                                                    dtype=np.float32,
+                                                ),
+                                                "angle": spaces.Box(
+                                                    low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                                                ),
+                                                "velocity": spaces.Box(
+                                                    low=-np.inf,
+                                                    high=np.inf,
+                                                    shape=(2,),
+                                                    dtype=np.float32,
+                                                ),
+                                                "angular_velocity": spaces.Box(
+                                                    low=-np.inf,
+                                                    high=np.inf,
+                                                    shape=(1,),
+                                                    dtype=np.float32,
+                                                ),
+                                            }
+                                        ),
+                                        "fingertips": spaces.Tuple(
                                             [
                                                 spaces.Dict(
                                                     {
-                                                        "position": spaces.Box(
-                                                            low=-np.inf,
-                                                            high=np.inf,
-                                                            shape=(2,),
-                                                            dtype=np.float32,
+                                                        "tip": spaces.Dict(
+                                                            {
+                                                                "position": spaces.Box(
+                                                                    low=-np.inf,
+                                                                    high=np.inf,
+                                                                    shape=(2,),
+                                                                    dtype=np.float32,
+                                                                ),
+                                                                "velocity": spaces.Box(
+                                                                    low=-np.inf,
+                                                                    high=np.inf,
+                                                                    shape=(2,),
+                                                                    dtype=np.float32,
+                                                                ),
+                                                            }
                                                         ),
+                                                    }
+                                                )
+                                                for finger in self.robot_config.fingers
+                                            ]
+                                        ),
+                                    }
+                                ),
+                                "object": spaces.Dict(
+                                    {
+                                        "velocity": spaces.Box(
+                                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                                        ),
+                                        "position": spaces.Box(
+                                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                                        ),
+                                        "angle": spaces.Box(
+                                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                                        ),
+                                        "angular_velocity": spaces.Box(
+                                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                                        ),
+                                        "size": spaces.Box(
+                                            low=0, high=np.inf, shape=(2,), dtype=np.float32
+                                        ),
+                                    }
+                                ),
+                            }
+                        ),
+                        "intrinsic": spaces.Dict(
+                            {
+                                "fingers": spaces.Tuple(
+                                    [
+                                        spaces.Tuple(
+                                            [
+                                                spaces.Dict(
+                                                    {
                                                         "joint_angle": spaces.Box(
                                                             low=-np.pi,
                                                             high=np.pi,
@@ -131,12 +178,6 @@ class RobotHandEnv(gym.Env):
                                                             shape=(1,),
                                                             dtype=np.float32,
                                                         ),
-                                                        "velocity": spaces.Box(
-                                                            low=-np.inf,
-                                                            high=np.inf,
-                                                            shape=(2,),
-                                                            dtype=np.float32,
-                                                        ),
                                                         "is_touching": spaces.MultiBinary(
                                                             n=1
                                                         ),
@@ -144,25 +185,16 @@ class RobotHandEnv(gym.Env):
                                                 )
                                                 for _ in finger.segments
                                             ]
-                                        ),
-                                        "fingertip_position": spaces.Box(
-                                            low=-np.inf,
-                                            high=np.inf,
-                                            shape=(2,),
-                                            dtype=np.float32,
-                                        ),
-                                    }
+                                        )
+                                        for finger in self.robot_config.fingers
+                                    ]
                                 )
-                                for finger in self.robot_config.fingers
-                            ]
+                            }
                         ),
                     }
                 ),
                 "achieved_goal": spaces.Dict(
                     {
-                        "velocity": spaces.Box(
-                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
-                        ),
                         "position": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
@@ -171,6 +203,9 @@ class RobotHandEnv(gym.Env):
                         ),
                         "angular_velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                        ),
+                        "velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                     }
                 ),
@@ -179,14 +214,14 @@ class RobotHandEnv(gym.Env):
                         "position": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
-                        "velocity": spaces.Box(
-                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
-                        ),
                         "angle": spaces.Box(
                             low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
                         ),
                         "angular_velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                        ),
+                        "velocity": spaces.Box(
+                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                     }
                 ),
@@ -266,12 +301,16 @@ class RobotHandEnv(gym.Env):
         if not self.robot or not self.scenario:
             raise ValueError("Robot or scenario is not initialized.")
 
-        robot_obs = self.robot.get_observation()
-        scenario_obs = self.scenario.get_observation(robot=self.robot)
-        scenario_goal = self.scenario.get_goal(robot=self.robot)
+        intrinsic_obs = self.robot.get_intrinsic_observation()
+        extrinsic_obs = self.scenario.get_observation(robot=self.robot)
+        goal = self.scenario.get_goal(robot=self.robot)
+        achieved_goal = self.scenario.get_achieved_goal(robot=self.robot)
 
         return Observation(
-            observation=robot_obs,
-            achieved_goal=scenario_obs,
-            desired_goal=scenario_goal,
+            observation=RobotObservation(
+                extrinsic=extrinsic_obs,
+                intrinsic=intrinsic_obs,
+            ),
+            achieved_goal=achieved_goal,
+            desired_goal=goal,
         )

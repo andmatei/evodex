@@ -1,10 +1,11 @@
 import numpy as np
 import pymunk
 
-from evodex.simulation.robot.base import Base
+from typing import Optional
 
+from .base import Base
 from .config import SegmentConfig
-from .spaces import SegmentObservation
+from .spaces import FingertipObservation, SegmentObservation
 from .connection import Connection
 from .constants import (
     CAT_FINGER_BASE,
@@ -56,6 +57,23 @@ class Segment:
         v_total = v_linear + v_tangential
 
         return v_total
+
+    def get_tip_observation(self, reference_body: Optional[pymunk.Body] = None) -> FingertipObservation:
+        """Get the fingertip observation in world coordinates."""
+        if not self.is_fingertip:
+            raise ValueError("This segment is not a fingertip.")
+        
+        tip_position = self.get_tip_position()
+        tip_velocity = self.get_tip_velocity()
+
+        if reference_body is not None:
+            tip_position -= reference_body.position
+            tip_velocity -= reference_body.velocity
+
+        return FingertipObservation(
+            position=tip_position,
+            velocity=tip_velocity,
+        )
 
     def remove_from_space(self, space: pymunk.Space):
         """Remove the segment from the pymunk space."""

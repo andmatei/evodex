@@ -3,7 +3,7 @@ import pymunk
 
 from typing import List
 
-from .spaces import FingerObservation, FingertipObservation, IntrinsicFingerObservation
+from .spaces import ExtrinsicFingerObservation, FingertipObservation, IntrinsicFingerObservation
 from .config import FingerConfig
 from .segment import Segment
 from .connection import Connection
@@ -52,27 +52,15 @@ class Finger:
         for connection, rate in zip(self.connections, rates):
             connection.motor.rate = rate
 
-    def get_observation(self):
-        segments_obs = [segment.get_observation() for segment in self.segments]
-        fingertip_obs = self.get_fingertip_position()
-        return FingerObservation(
-            segments=segments_obs,
-            fingertip_position=fingertip_obs,
-        )
-
     def get_intrinsic_observation(self) -> IntrinsicFingerObservation:
         return IntrinsicFingerObservation(
             [segment.get_observation() for segment in self.segments]
         )
 
-    def get_extrinsic_observation(self, reference_frame: pymunk.Body):
-        return FingertipObservation(
-            position=self.segments[-1].get_tip_position() - reference_frame.position,
-            velocity=self.segments[-1].get_tip_velocity() - reference_frame.velocity,
+    def get_extrinsic_observation(self, reference_frame: pymunk.Body) -> ExtrinsicFingerObservation:
+        return ExtrinsicFingerObservation(
+            tip=self.tip.get_tip_observation(reference_frame),
         )
-
-    def get_fingertip_position(self):
-        return self.segments[-1].get_tip_position()
 
     def remove_from_space(self, space):
         """Remove the finger and its segments from the pymunk space."""
@@ -87,3 +75,7 @@ class Finger:
             segment.add_to_space(space)
         for connection in self.connections:
             connection.add_to_space(space)
+
+    @property
+    def tip(self) -> Segment:
+        return self.segments[-1]

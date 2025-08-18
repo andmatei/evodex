@@ -1,6 +1,6 @@
 import pymunk
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from .config import BaseConfig
 from .constants import (
     CAT_ROBOT_BASE,
@@ -80,10 +80,21 @@ class Base:
         """Add the base to the pymunk space."""
         space.add(self.body, self.shape)
 
-    def get_observation(self) -> BaseObservation:
+    def get_observation(self, reference_body: Optional[pymunk.Body] = None) -> BaseObservation:
+        position = self.body.position
+        velocity = self.body.velocity
+        angle = self.body.angle
+        angular_velocity = self.body.angular_velocity
+
+        if reference_body is not None:
+            position -= reference_body.position
+            velocity -= reference_body.velocity
+            angle -= reference_body.angle
+            angular_velocity -= reference_body.angular_velocity
+
         return BaseObservation(
-            position=self.body.position,
-            velocity=self.body.velocity,
-            angle=self.body.angle,
-            angular_velocity=self.body.angular_velocity,
+            position=position,
+            velocity=velocity,
+            angle=angle,
+            angular_velocity=angular_velocity,
         )

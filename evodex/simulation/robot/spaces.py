@@ -11,49 +11,12 @@ class BaseAction(BaseModel):
     omega: float = Field(..., description="Base angular velocity")
 
 
+FingerAction = List[float]
+
+
 class Action(BaseModel):
     base: BaseAction
-    fingers: List[List[float]]
-
-    def flatten(self) -> np.ndarray:
-        """
-        Flattens the Action into a list of floats.
-        Returns:
-            List[float]: A flattened list of action values.
-        """
-        base_velocity = list(self.base.velocity)
-        omega = [self.base.omega]
-        finger_motor_rates = [rate for finger in self.fingers for rate in finger]
-
-        return (
-            np.array(base_velocity + omega + finger_motor_rates).astype(float).tolist()
-        )
-
-    @staticmethod
-    def unflatten(flat_action: List[float], segments: List[int]) -> "Action":
-        """
-        Converts a flattened list of action values back into an Action object.
-        Args:
-            flat_action (List[float]): A flattened list of action values.
-        Returns:
-            Action: An Action object constructed from the flattened values.
-        """
-        base_velocity = (flat_action[0], flat_action[1])
-        omega = flat_action[2]
-        finger_motor_rates = flat_action[3:]
-
-        num_fingers = len(segments)
-        start, end = 0, 0
-        fingers = []
-        for finger in range(num_fingers):
-            end = start + segments[finger]
-            fingers.append(finger_motor_rates[start:end])
-            start = end
-
-        return Action(
-            base=BaseAction(velocity=base_velocity, omega=omega),
-            fingers=fingers,
-        )
+    fingers: List[FingerAction]
 
 
 class BaseObservation(BaseModel):
@@ -67,17 +30,25 @@ class SegmentObservation(BaseModel):
     joint_angle: float
     joint_angular_velocity: float
 
-    position: Tuple[float, float]
-    velocity: Tuple[float, float]
-
     is_touching: bool
 
 
-class FingerObservation(BaseModel):
-    segments: List[SegmentObservation]
-    fingertip_position: Tuple[float, float]
+class FingertipObservation(BaseModel):
+    position: Tuple[float, float]
+    velocity: Tuple[float, float]
 
 
-class Observation(BaseModel):
+class ExtrinsicFingerObservation(BaseModel):
+    tip: FingertipObservation
+
+
+IntrinsicFingerObservation = List[SegmentObservation]
+
+
+class IntrinsicObservation(BaseModel):
+    fingers: List[IntrinsicFingerObservation]
+
+
+class ExtrinsicObservation(BaseModel):
     base: BaseObservation
-    fingers: List[FingerObservation]
+    fingertips: List[ExtrinsicFingerObservation]

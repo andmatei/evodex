@@ -14,7 +14,6 @@ from .constants import (
 )
 
 
-# TODO: Add connect(segment) method to connect segments
 class Segment:
     def __init__(
         self,
@@ -45,6 +44,19 @@ class Segment:
         local_tip = (self.config.length / 2, 0)
         return self.body.local_to_world(local_tip)
 
+    def get_tip_velocity(self):
+        """Get the velocity of the tip of the segment in world coordinates."""
+
+        v_linear = self.body.velocity
+        r_local = pymunk.Vec2d(self.config.length / 2, 0)
+        v_tangential = (
+            r_local.rotated(self.body.angle).perpendicular()
+            * self.body.angular_velocity
+        )
+        v_total = v_linear + v_tangential
+
+        return v_total
+
     def remove_from_space(self, space: pymunk.Space):
         """Remove the segment from the pymunk space."""
         if self.shape in space.shapes:
@@ -71,8 +83,6 @@ class Segment:
         return SegmentObservation(
             joint_angle=self.connection.angle,
             joint_angular_velocity=self.body.angular_velocity,
-            position=self.body.position,
-            velocity=self.body.velocity,
             is_touching=self.is_touching,
         )
 

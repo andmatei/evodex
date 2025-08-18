@@ -1,14 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Optional, Tuple
+from typing import Tuple
+from evodex.simulation.robot.spaces import ExtrinsicObservation as RobotObservation
 
 
-# TODO: Add relative observations (rotation position) with the robot
-class Observation(BaseModel):
-    """
-    Base class for observations in scenarios.
-    This class can be extended to include specific observation data.
-    """
-
+class ObjectObservation(BaseModel):
     velocity: Tuple[float, float] = Field(
         ..., description="Velocity of the object being observed"
     )
@@ -19,3 +14,8 @@ class Observation(BaseModel):
     angular_velocity: float = Field(
         ..., description="Angular velocity of the object being observed"
     )
+
+
+class Observation(BaseModel):
+    object: ObjectObservation
+    robot: RobotObservation

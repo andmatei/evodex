@@ -2,7 +2,7 @@ from .collision import RobotCollisionHandler
 from .finger import Finger
 from .base import Base
 from .config import RobotConfig
-from .spaces import Action, Observation
+from .spaces import Action, ExtrinsicObservation, IntrinsicObservation, Observation
 
 
 class Robot:
@@ -69,6 +69,17 @@ class Robot:
         return Observation(
             base=self.base.get_observation(),
             fingers=[finger.get_observation() for finger in self.fingers],
+        )
+
+    def get_intrinsic_observation(self) -> IntrinsicObservation:
+        return IntrinsicObservation(
+            fingers=[finger.get_intrinsic_observation() for finger in self.fingers]
+        )
+
+    def get_extrinsic_observation(self) -> ExtrinsicObservation:
+        return ExtrinsicObservation(
+            base=self.base.get_observation(),
+            fingertips=[finger.get_fingertip_observation() for finger in self.fingers],
         )
 
     def remove_from_space(self, space):

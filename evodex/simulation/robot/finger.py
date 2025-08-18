@@ -3,7 +3,7 @@ import pymunk
 
 from typing import List
 
-from .spaces import FingerObservation
+from .spaces import FingerObservation, FingertipObservation, IntrinsicFingerObservation
 from .config import FingerConfig
 from .segment import Segment
 from .connection import Connection
@@ -58,6 +58,17 @@ class Finger:
         return FingerObservation(
             segments=segments_obs,
             fingertip_position=fingertip_obs,
+        )
+
+    def get_intrinsic_observation(self) -> IntrinsicFingerObservation:
+        return IntrinsicFingerObservation(
+            [segment.get_observation() for segment in self.segments]
+        )
+
+    def get_extrinsic_observation(self, reference_frame: pymunk.Body):
+        return FingertipObservation(
+            position=self.segments[-1].get_tip_position() - reference_frame.position,
+            velocity=self.segments[-1].get_tip_velocity() - reference_frame.velocity,
         )
 
     def get_fingertip_position(self):

@@ -8,7 +8,7 @@ from typing import Annotated, Type, Optional, TypeVar, Generic
 from pydantic import BaseModel, Field
 from typing import Tuple, Union
 
-from .types import Observation
+from .types import Goal, Observation
 from .utils import COLLISION_TYPE_GRASPING_OBJECT
 
 from evodex.simulation.robot import Robot, Action
@@ -60,10 +60,6 @@ class Scenario(Generic[C], ABC):
         pass
 
     @abstractmethod
-    def get_goal(self, robot: Robot) -> Observation:
-        pass
-
-    @abstractmethod
     def render(self, screen: pygame.Surface) -> None:
         pass
 
@@ -79,6 +75,19 @@ class Scenario(Generic[C], ABC):
                 if item in space.constraints:
                     space.remove(item)
         self._objects = []
+
+
+class HERScenario(Scenario[C], ABC):
+    def __init__(self, config: C):
+        super().__init__(config)
+
+    @abstractmethod
+    def get_achieved_goal(self, robot: Robot) -> Goal:
+        pass
+
+    @abstractmethod
+    def get_desired_goal(self, robot: Robot) -> Goal:
+        pass
 
 
 class GroundScenario(Scenario[C], ABC):

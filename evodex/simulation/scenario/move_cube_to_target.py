@@ -7,7 +7,7 @@ from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_GRASPING_OBJECT, pymunk_to_pygame_coord
-from .types import Observation
+from .types import Observation, Goal
 
 from evodex.simulation.robot import Robot, Action
 
@@ -81,6 +81,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
 
         self._objects.extend([self.cube_body, self.cube_shape])
 
+    # TODO: Calculate the reward based on an achieved goal and the end goal (for HER)
     def get_reward(self, robot: Robot, action: Action) -> float:
         reward = 0.0
         if self.cube_body:
@@ -110,11 +111,11 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
             position=tuple(self.cube_body.position),
             angle=self.cube_body.angle,
             angular_velocity=self.cube_body.angular_velocity,
-        )
-
-    def get_goal(self, robot: Robot) -> Observation:
-        return Observation(
-            position=self.target_pos, velocity=(0, 0), angle=0.0, angular_velocity=0.0
+            base_to_obj=tuple(self.cube_body.position - robot.base.position),
+            fingertips_to_obj=[
+                tuple(self.cube_body.position - finger.get_fingertip_position())
+                for finger in robot.fingers
+            ],
         )
 
     def render(self, screen):

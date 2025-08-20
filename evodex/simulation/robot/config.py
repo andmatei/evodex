@@ -45,7 +45,7 @@ class SegmentConfig(BaseModel):
 
 
 class FingerConfig(BaseModel):
-    segments: List[SegmentConfig]
+    segments: Tuple[SegmentConfig, ...]
     defaults: Optional[GlobalSegmentConfig] = None
 
     @model_validator(mode="after")
@@ -104,7 +104,7 @@ class ActionLimitsConfig(BaseModel):
 
 class RobotConfig(BaseModel):
     base: BaseConfig
-    fingers: List[FingerConfig]
+    fingers: Tuple[FingerConfig, ...]
     limits: ActionLimitsConfig = Field(
         default_factory=lambda: ActionLimitsConfig(
             velocity=LimitConfig(min=-100, max=100),

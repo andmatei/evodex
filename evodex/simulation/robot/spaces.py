@@ -42,13 +42,14 @@ class ExtrinsicFingerObservation(BaseModel):
     tip: FingertipObservation
 
 
-IntrinsicFingerObservation = List[SegmentObservation]
+class IntrinsicFingerObservation(BaseModel):
+    segments: Tuple[SegmentObservation, ...]
 
 
 class IntrinsicObservation(BaseModel):
-    fingers: List[IntrinsicFingerObservation]
+    fingers: Tuple[IntrinsicFingerObservation, ...]
 
 
 class ExtrinsicObservation(BaseModel):
     base: BaseObservation
-    fingertips: List[ExtrinsicFingerObservation]
+    fingertips: Tuple[ExtrinsicFingerObservation, ...]

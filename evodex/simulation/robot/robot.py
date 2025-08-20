@@ -1,5 +1,7 @@
 import pymunk
 
+from typing import List
+
 from .collision import RobotCollisionHandler
 from .finger import Finger
 from .base import Base
@@ -17,7 +19,7 @@ class Robot:
         self.base.set_finger_count(len(self.config.fingers))
         self.collision.track_base(self.base)
 
-        self.fingers: list[Finger] = []
+        self.fingers: List[Finger] = []
         for i, finger_config in enumerate(self.config.fingers):
             attach_point = self.base.finger_attachment_points_local[i]
             finger = Finger(
@@ -69,13 +71,18 @@ class Robot:
 
     def get_intrinsic_observation(self) -> IntrinsicObservation:
         return IntrinsicObservation(
-            fingers=[finger.get_intrinsic_observation() for finger in self.fingers]
+            fingers=tuple(finger.get_intrinsic_observation() for finger in self.fingers)
         )
 
-    def get_extrinsic_observation(self, reference_body: pymunk.Body) -> ExtrinsicObservation:
+    def get_extrinsic_observation(
+        self, reference_body: pymunk.Body
+    ) -> ExtrinsicObservation:
         return ExtrinsicObservation(
             base=self.base.get_observation(),
-            fingertips=[finger.get_extrinsic_observation(reference_body) for finger in self.fingers],
+            fingertips=tuple(
+                finger.get_extrinsic_observation(reference_body)
+                for finger in self.fingers
+            ),
         )
 
     def remove_from_space(self, space):

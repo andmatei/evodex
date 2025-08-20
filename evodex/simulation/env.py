@@ -6,6 +6,7 @@ import pygame
 from gymnasium import spaces
 from typing import Optional
 
+from .utils import to_observation
 from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
 from .scenario import Scenario, ScenarioRegistry
@@ -25,7 +26,7 @@ class RobotHandEnv(gym.Env):
         robot_config: dict,
         scenario_config: dict,
         env_config: dict,
-        render_mode: Optional[str] = None
+        render_mode: Optional[str] = None,
     ):
         super().__init__()
 
@@ -94,7 +95,10 @@ class RobotHandEnv(gym.Env):
                                                     dtype=np.float32,
                                                 ),
                                                 "angle": spaces.Box(
-                                                    low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                                                    low=-np.pi,
+                                                    high=np.pi,
+                                                    shape=(),
+                                                    dtype=np.float32,
                                                 ),
                                                 "velocity": spaces.Box(
                                                     low=-np.inf,
@@ -105,7 +109,7 @@ class RobotHandEnv(gym.Env):
                                                 "angular_velocity": spaces.Box(
                                                     low=-np.inf,
                                                     high=np.inf,
-                                                    shape=(1,),
+                                                    shape=(),
                                                     dtype=np.float32,
                                                 ),
                                             }
@@ -140,19 +144,34 @@ class RobotHandEnv(gym.Env):
                                 "object": spaces.Dict(
                                     {
                                         "velocity": spaces.Box(
-                                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                                            low=-np.inf,
+                                            high=np.inf,
+                                            shape=(2,),
+                                            dtype=np.float32,
                                         ),
                                         "position": spaces.Box(
-                                            low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
+                                            low=-np.inf,
+                                            high=np.inf,
+                                            shape=(2,),
+                                            dtype=np.float32,
                                         ),
                                         "angle": spaces.Box(
-                                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                                            low=-np.pi,
+                                            high=np.pi,
+                                            shape=(),
+                                            dtype=np.float32,
                                         ),
                                         "angular_velocity": spaces.Box(
-                                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                                            low=-np.inf,
+                                            high=np.inf,
+                                            shape=(),
+                                            dtype=np.float32,
                                         ),
                                         "size": spaces.Box(
-                                            low=0, high=np.inf, shape=(2,), dtype=np.float32
+                                            low=0,
+                                            high=np.inf,
+                                            shape=(2,),
+                                            dtype=np.float32,
                                         ),
                                     }
                                 ),
@@ -162,29 +181,33 @@ class RobotHandEnv(gym.Env):
                             {
                                 "fingers": spaces.Tuple(
                                     [
-                                        spaces.Tuple(
-                                            [
-                                                spaces.Dict(
-                                                    {
-                                                        "joint_angle": spaces.Box(
-                                                            low=-np.pi,
-                                                            high=np.pi,
-                                                            shape=(1,),
-                                                            dtype=np.float32,
-                                                        ),
-                                                        "joint_angular_velocity": spaces.Box(
-                                                            low=-np.inf,
-                                                            high=np.inf,
-                                                            shape=(1,),
-                                                            dtype=np.float32,
-                                                        ),
-                                                        "is_touching": spaces.MultiBinary(
-                                                            n=1
-                                                        ),
-                                                    }
+                                        spaces.Dict(
+                                            {
+                                                "segments": spaces.Tuple(
+                                                    [
+                                                        spaces.Dict(
+                                                            {
+                                                                "joint_angle": spaces.Box(
+                                                                    low=-np.pi,
+                                                                    high=np.pi,
+                                                                    shape=(),
+                                                                    dtype=np.float32,
+                                                                ),
+                                                                "joint_angular_velocity": spaces.Box(
+                                                                    low=-np.inf,
+                                                                    high=np.inf,
+                                                                    shape=(),
+                                                                    dtype=np.float32,
+                                                                ),
+                                                                "is_touching": spaces.MultiBinary(
+                                                                    n=1
+                                                                ),
+                                                            }
+                                                        )
+                                                        for _ in finger.segments
+                                                    ]
                                                 )
-                                                for _ in finger.segments
-                                            ]
+                                            }
                                         )
                                         for finger in self.robot_config.fingers
                                     ]
@@ -199,10 +222,10 @@ class RobotHandEnv(gym.Env):
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                         "angle": spaces.Box(
-                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                            low=-np.pi, high=np.pi, shape=(), dtype=np.float32
                         ),
                         "angular_velocity": spaces.Box(
-                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                            low=-np.inf, high=np.inf, shape=(), dtype=np.float32
                         ),
                         "velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
@@ -215,10 +238,10 @@ class RobotHandEnv(gym.Env):
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
                         ),
                         "angle": spaces.Box(
-                            low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32
+                            low=-np.pi, high=np.pi, shape=(), dtype=np.float32
                         ),
                         "angular_velocity": spaces.Box(
-                            low=-np.inf, high=np.inf, shape=(1,), dtype=np.float32
+                            low=-np.inf, high=np.inf, shape=(), dtype=np.float32
                         ),
                         "velocity": spaces.Box(
                             low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32
@@ -244,7 +267,7 @@ class RobotHandEnv(gym.Env):
 
         self.step_count = 0
 
-        return self._get_observation().model_dump(), {}
+        return self._get_observation(), {}
 
     def step(self, action: dict):
         if self.robot is None:
@@ -273,7 +296,7 @@ class RobotHandEnv(gym.Env):
             else False
         )
 
-        return obs.model_dump(), reward, terminated, truncated, {}
+        return obs, reward, terminated, truncated, {}
 
     def render(self):
         if self.render_mode == "human":
@@ -297,7 +320,7 @@ class RobotHandEnv(gym.Env):
             self.renderer.close()
         self.renderer = None
 
-    def _get_observation(self) -> Observation:
+    def _get_observation(self) -> dict:
         if not self.robot or not self.scenario:
             raise ValueError("Robot or scenario is not initialized.")
 
@@ -306,11 +329,13 @@ class RobotHandEnv(gym.Env):
         goal = self.scenario.get_goal(robot=self.robot)
         achieved_goal = self.scenario.get_achieved_goal(robot=self.robot)
 
-        return Observation(
-            observation=RobotObservation(
-                extrinsic=extrinsic_obs,
-                intrinsic=intrinsic_obs,
-            ),
-            achieved_goal=achieved_goal,
-            desired_goal=goal,
+        return to_observation(
+            Observation(
+                observation=RobotObservation(
+                    extrinsic=extrinsic_obs,
+                    intrinsic=intrinsic_obs,
+                ),
+                achieved_goal=achieved_goal,
+                desired_goal=goal,
+            )
         )

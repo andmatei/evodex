@@ -1,0 +1,30 @@
+base:
+  width: 30
+  height: 100
+  mass: 10.0
+fingers:
+  - defaults:
+      motor_stiffness: 1e+06
+      motor_damping: 100000.0
+      joint_angle_limit: [-1.0, 1.0]
+    segments:
+      - length: 100
+        width: 20
+        mass: 5.0
+      - length: 80
+        width: 15
+        mass: 3.0
+  - defaults:
+      motor_stiffness: 1e+06
+      motor_damping: 100000.0
+      joint_angle_limit: [-1.0, 1.0]
+    segments:
+      - length: 100
+        width: 20
+        mass: 5.0
+      - length: 80
+        width: 15
+        mass: 3.0
+      - length: 60
+        width: 10
+        mass: 2.0

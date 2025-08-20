@@ -1,0 +1,7 @@
+name: move_cube_to_target
+screen:
+  width: 800
+  height: 600
+robot_start_position: [200, 400]
+success_radius: 50
+cube_size: [50, 50]

@@ -1,3 +1,3 @@
 from .robot import Robot
 from .config import RobotConfig
-from .spaces import Action, Observation, ExtrinsicObservation, IntrinsicObservation
+from .spaces import Action, ExtrinsicObservation, IntrinsicObservation

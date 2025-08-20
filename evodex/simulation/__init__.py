@@ -1,5 +1,6 @@
 from .env import RobotHandEnv
 from .types import Observation
+from .robot import Action
 
 import gymnasium as gym
 

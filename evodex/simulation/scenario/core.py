@@ -6,7 +6,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Annotated, Type, Optional, TypeVar, Generic
 from pydantic import BaseModel, Field
-from typing import Tuple, Union
+from typing import Tuple, List
 
 from .types import Goal, Observation
 from .utils import COLLISION_TYPE_GRASPING_OBJECT
@@ -32,7 +32,7 @@ class Scenario(Generic[C], ABC):
     def __init__(self, config: C):
         self.config = config
 
-        self._objects: list[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
+        self._objects: List[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
         self._random: np.random.Generator = np.random.default_rng()
 
     @abstractmethod
@@ -116,6 +116,7 @@ class ScenarioRegistry:
 
     @classmethod
     def register(cls, scenario_class: Type[Scenario]) -> Type[Scenario]:
+        print("Scenario registered:", scenario_class.__name__)
         sig = inspect.signature(scenario_class.__init__)
         config = sig.parameters.get("config", None)
 

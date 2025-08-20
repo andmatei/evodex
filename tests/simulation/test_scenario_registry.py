@@ -44,6 +44,12 @@ class DummyScenario(Scenario[DummyConfig]):
     def render(self, screen):
         pass
 
+    def get_achieved_goal(self, robot):
+        pass
+
+    def get_goal(self, robot):
+        pass
+
 
 # A fixture to ensure the registry is clean before each test
 @pytest.fixture(autouse=True)

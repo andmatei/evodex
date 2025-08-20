@@ -52,4 +52,4 @@ class IntrinsicObservation(BaseModel):
 
 class ExtrinsicObservation(BaseModel):
     base: BaseObservation
-    fingertips: Tuple[ExtrinsicFingerObservation, ...]
+    fingers: Tuple[ExtrinsicFingerObservation, ...]

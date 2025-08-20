@@ -22,15 +22,9 @@ if __name__ == "__main__":
         render_mode="human",  # Set to 'human' for visual rendering
     )
 
-    action = Action(
-        base=BaseAction(
-            velocity=(0.0, 0.0),  # Base velocity in x and y directions
-            omega=0.0,  # Base angular velocity
-        ),
-        fingers=[[0.0, 0.0], [0.0, 0.0, 0.2]],  # Example finger motor rates
-    )
+    action = env.action_space.sample()
 
     obs, _ = env.reset()
     while True:
-        obs, reward, terminated, truncated, info = env.step(action.model_dump())
+        obs, reward, terminated, truncated, info = env.step(action)
         env.render()

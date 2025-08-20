@@ -1,6 +1,6 @@
 import pymunk
 
-from typing import List
+from typing import List, Optional
 
 from .collision import RobotCollisionHandler
 from .finger import Finger
@@ -75,11 +75,11 @@ class Robot:
         )
 
     def get_extrinsic_observation(
-        self, reference_body: pymunk.Body
+        self, reference_body: Optional[pymunk.Body] = None
     ) -> ExtrinsicObservation:
         return ExtrinsicObservation(
             base=self.base.get_observation(),
-            fingertips=tuple(
+            fingers=tuple(
                 finger.get_extrinsic_observation(reference_body)
                 for finger in self.fingers
             ),

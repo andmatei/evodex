@@ -114,7 +114,7 @@ class RobotHandEnv(gym.Env):
                                                 ),
                                             }
                                         ),
-                                        "fingertips": spaces.Tuple(
+                                        "fingers": spaces.Tuple(
                                             [
                                                 spaces.Dict(
                                                     {

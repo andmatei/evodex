@@ -1,7 +1,7 @@
 import numpy as np
 import pymunk
 
-from typing import List
+from typing import List, Optional
 
 from .spaces import (
     ExtrinsicFingerObservation,
@@ -58,11 +58,11 @@ class Finger:
 
     def get_intrinsic_observation(self) -> IntrinsicFingerObservation:
         return IntrinsicFingerObservation(
-            segments=[segment.get_observation() for segment in self.segments]
+            segments=tuple(segment.get_observation() for segment in self.segments)
         )
 
     def get_extrinsic_observation(
-        self, reference_frame: pymunk.Body
+        self, reference_frame: Optional[pymunk.Body] = None
     ) -> ExtrinsicFingerObservation:
         return ExtrinsicFingerObservation(
             tip=self.tip.get_tip_observation(reference_frame),

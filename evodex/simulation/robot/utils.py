@@ -1,64 +1,35 @@
-from typing import Tuple, Optional
-from pydantic import BaseModel, Field
+import pymunk
 
-def in_interval(
-    value: float, interval: Tuple[float, float]
-) -> bool:
-    return interval[0] <= value <= interval[1]
+from typing import Union, Tuple
+from pydantic import BaseModel, Field, field_validator
 
 
-class Scale(BaseModel):
-    domain: Tuple[float, float] = Field(
-        ..., description="Domain for scaling values"
+class Reference(BaseModel):
+    position: pymunk.Vec2d = Field(
+        default=pymunk.Vec2d(0.0, 0.0),
+        description="The (x, y) position of the reference point.",
+    )
+    velocity: pymunk.Vec2d = Field(
+        default=pymunk.Vec2d(0.0, 0.0),
+        description="The (x, y) velocity of the reference point.",
+    )
+    angle: float = Field(default=0.0, description="The angle of the reference point.")
+    angular_velocity: float = Field(
+        default=0.0, description="The angular velocity of the reference point."
     )
 
-    target: Tuple[float, float] = Field(
-        ..., description="Target scale range for values"
-    )
+    @field_validator("position", "velocity", mode="before")
+    @classmethod
+    def ensure_vec2d(cls, v: Union[pymunk.Vec2d, Tuple[float, float]]):
+        if isinstance(v, tuple) and len(v) == 2:
+            return pymunk.Vec2d(*v)
+        return v
 
-    def rescale(self, value: float, inverse: bool = False):
-        """
-        Scales a value from the domain to the target range or vice versa if inverse is True.
-
-        Args:
-            value (float): The value to be scaled.
-            inverse (bool): If True, scales from target to domain; otherwise scales from domain to target.
-
-        Returns:
-            float: The scaled value.
-        """
-        if not inverse:
-            return value * self.gain + self.offset
-        return (value - self.offset) / self.gain if self.gain != 0 else value
-        
-    
-    @property
-    def gain(self) -> float:
-        """
-        Returns the gain factor for scaling.
-        """
-        return (self.target[1] - self.target[0]) / (self.domain[1] - self.domain[0]) if self.domain[1] != self.domain[0] else 1.0
-    
-    @property
-    def offset(self) -> float:
-        """
-        Returns the offset for scaling.
-        """
-        return self.target[0] - self.gain * self.domain[0] if self.domain[1] != self.domain[0] else 0.0
-
-
-class NormalizedScale(Scale):
-    """
-    A scale that normalizes values to the range [0, 1].
-    """
-    def __init__(self, target: Tuple[float, float], **data):
-        """
-        Initializes the NormalizedScale with the specified target range.
-        """
-        super().__init__(domain=(-1.0, 1.0), target=target, **data)
-
-    def scale(self, value: float) -> float:
-        """
-        Rescales a value to the normalized range [0, 1] or back.
-        """
-        return super().rescale(value)
+    @staticmethod
+    def from_body(body: pymunk.Body) -> "Reference":
+        return Reference(
+            position=body.position,
+            velocity=body.velocity,
+            angle=body.angle,
+            angular_velocity=body.angular_velocity,
+        )

@@ -7,6 +7,7 @@ from .base import Base
 from .config import SegmentConfig
 from .spaces import FingertipObservation, SegmentObservation
 from .connection import Connection
+from .utils import Reference
 from .constants import (
     CAT_FINGER_BASE,
     CAT_FINGER_SEGMENT,
@@ -58,17 +59,19 @@ class Segment:
 
         return v_total
 
-    def get_tip_observation(self, reference_body: Optional[pymunk.Body] = None) -> FingertipObservation:
+    def get_tip_observation(
+        self, reference: Optional[Reference] = None
+    ) -> FingertipObservation:
         """Get the fingertip observation in world coordinates."""
         if not self.is_fingertip:
             raise ValueError("This segment is not a fingertip.")
-        
+
         tip_position = self.get_tip_position()
         tip_velocity = self.get_tip_velocity()
 
-        if reference_body is not None:
-            tip_position -= reference_body.position
-            tip_velocity -= reference_body.velocity
+        if reference is not None:
+            tip_position -= reference.position
+            tip_velocity -= reference.velocity
 
         return FingertipObservation(
             position=tip_position,

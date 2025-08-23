@@ -10,13 +10,14 @@ from .utils import COLLISION_TYPE_GRASPING_OBJECT, pymunk_to_pygame_coord
 from .types import Goal, Observation, ObjectObservation
 
 from evodex.simulation.robot import Robot, Action
+from evodex.simulation.robot.utils import Reference
 
 
 # TODO: Add the goal in the scenario config
 class MoveCubeToTargetScenarioConfig(ScenarioConfig):
     name: Literal["move_cube_to_target"] = "move_cube_to_target"
     target_pos: Optional[Tuple[float, float]] = Field(
-        None, description="Target position"
+        default=None, description="Target position"
     )
     success_radius: float = Field(..., description="Success radius")
     cube_size: Tuple[float, float] = Field(
@@ -112,81 +113,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         ACTION_PENALTY = 0.001
         SUCCESS_BONUS = 250.0
 
-        total_reward = 0.0
-
-        achieved_goal = self.get_achieved_goal(robot)
-        desired_goal = self.get_goal(robot)
-        robot_extrinsic_obs = robot.get_extrinsic_observation()
-        robot_intrinsic_obs = robot.get_intrinsic_observation()
-
-        # --- 1. Reaching Reward: Encourage hand to move towards the cube ---
-        fingertip_positions = [
-            np.array(f.tip.position, dtype=np.float32)
-            for f in robot_extrinsic_obs.fingers
-        ]
-        cube_pos = np.array(
-            [self.cube_body.position.x, self.cube_body.position.y], dtype=np.float32
-        )
-        dist_hand_to_cube = (
-            min([np.linalg.norm(pos - cube_pos) for pos in fingertip_positions])
-            / self.max_distance
-        )
-
-        if self.prev_dist_hand_to_cube is not None:
-            total_reward += REACH_WEIGHT * (
-                self.prev_dist_hand_to_cube - dist_hand_to_cube
-            )
-        self.prev_dist_hand_to_cube = float(dist_hand_to_cube)
-
-        # --- 2. Grasping Reward: Encourage contact with the cube ---
-        # Assumes your robot_state includes contact info
-        contact_points = sum(
-            1
-            for finger in robot_intrinsic_obs.fingers
-            for segment in finger.segments
-            if segment.is_touching
-        )
-        is_grasping = (
-            contact_points > 1
-        )  # Grasping is defined as at least 2 contact points
-        if is_grasping:
-            total_reward += GRASP_WEIGHT * contact_points
-
-        # --- 3. Lifting Reward: Encourage lifting the cube off the ground ---
-        # Only provide this reward if the cube is being grasped
-        if is_grasping:
-            ground_height = self.config.screen.height - 10  # From GroundScenario
-            lift_height = cube_pos[1] - (ground_height - self.config.cube_size[1])
-            if lift_height > 0:
-                total_reward += LIFT_WEIGHT * lift_height
-
-        # --- 4. Moving to Target Reward: Encourage moving the cube to the goal ---
-        target_pos = np.array(desired_goal.position)
-        dist_cube_to_target = np.linalg.norm(cube_pos - target_pos) / self.max_distance
-
-        if self.prev_dist_cube_to_target is not None:
-            total_reward += MOVE_WEIGHT * (
-                self.prev_dist_cube_to_target - dist_cube_to_target
-            )
-        self.prev_dist_cube_to_target = float(dist_cube_to_target)
-
-        # --- 5. Stability Penalty: Encourage placing the cube gently ---
-        if dist_cube_to_target < self.config.success_radius * 1.5:
-            vel_penalty = np.linalg.norm(achieved_goal.velocity)
-            ang_vel_penalty = abs(achieved_goal.angular_velocity)
-            total_reward -= STABILITY_PENALTY * (vel_penalty + ang_vel_penalty)
-
-        # --- 6. Action Penalty: Encourage smooth, efficient actions ---
-        # action_cost = np.sum(np.square(action.base.velocity)) + abs(action.base.omega)
-        # for finger_action in action.fingers:
-        #     action_cost += np.sum(np.square(finger_action))
-        # total_reward -= ACTION_PENALTY * action_cost
-
-        # --- 7. Success Bonus: Large reward for achieving the final goal ---
-        if dist_cube_to_target < self.config.success_radius:
-            total_reward += SUCCESS_BONUS
-
-        return total_reward
+        return 0.0
 
     def is_terminated(self, robot: Robot) -> bool:
         if self.cube_body:
@@ -207,7 +134,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
                 angular_velocity=self.cube_body.angular_velocity,
                 size=self.config.cube_size,
             ),
-            robot=robot.get_extrinsic_observation(self.cube_body),
+            robot=robot.get_extrinsic_observation(Reference.from_body(self.cube_body)),
         )
 
     def get_goal(self, robot: Robot) -> Goal:

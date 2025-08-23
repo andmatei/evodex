@@ -1,5 +1,3 @@
-import pymunk
-
 from typing import List, Optional
 
 from .collision import RobotCollisionHandler
@@ -7,6 +5,7 @@ from .finger import Finger
 from .base import Base
 from .config import RobotConfig
 from .spaces import Action, ExtrinsicObservation, IntrinsicObservation
+from .utils import Reference
 
 
 class Robot:
@@ -75,13 +74,12 @@ class Robot:
         )
 
     def get_extrinsic_observation(
-        self, reference_body: Optional[pymunk.Body] = None
+        self, reference: Optional[Reference] = None
     ) -> ExtrinsicObservation:
         return ExtrinsicObservation(
             base=self.base.get_observation(),
             fingers=tuple(
-                finger.get_extrinsic_observation(reference_body)
-                for finger in self.fingers
+                finger.get_extrinsic_observation(reference) for finger in self.fingers
             ),
         )
 

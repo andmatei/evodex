@@ -13,6 +13,7 @@ from .segment import Segment
 from .connection import Connection
 from .constants import FINGER_GROUP_START
 from .base import Base
+from .utils import Reference
 
 
 class Finger:
@@ -62,10 +63,10 @@ class Finger:
         )
 
     def get_extrinsic_observation(
-        self, reference_frame: Optional[pymunk.Body] = None
+        self, reference: Optional[Reference] = None
     ) -> ExtrinsicFingerObservation:
         return ExtrinsicFingerObservation(
-            tip=self.tip.get_tip_observation(reference_frame),
+            tip=self.tip.get_tip_observation(reference),
         )
 
     def remove_from_space(self, space):

@@ -96,6 +96,7 @@ class LimitConfig(BaseModel):
         return self
 
 
+# TODO: Include this as metadata into the action object
 class ActionLimitsConfig(BaseModel):
     velocity: LimitConfig = Field(..., description="Scale for base velocity ")
     omega: LimitConfig = Field(..., description="Scale for base angular velocity")

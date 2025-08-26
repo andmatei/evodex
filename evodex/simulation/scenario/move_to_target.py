@@ -121,13 +121,10 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
         )
 
     def render(self, screen):
-        target_center_pygame = pymunk_to_pygame_coord(
-            self.target_position, self.config.screen.height
-        )
         pygame.draw.circle(
             screen,
             pygame.Color("lightgreen"),
-            target_center_pygame,
+            self.target_position,
             10,
             2,
         )

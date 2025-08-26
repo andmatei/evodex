@@ -1,4 +1,5 @@
 import pymunk
+import pygame
 import numpy as np
 
 from typing import Optional, Tuple, Literal
@@ -6,6 +7,7 @@ from pydantic import Field
 
 from .core import GroundScenario, ScenarioConfig, ScenarioRegistry
 from .types import Goal, Observation, ObjectObservation
+from .utils import pymunk_to_pygame_coord
 
 from evodex.simulation.robot import Robot, Action
 from evodex.simulation.robot.utils import Reference
@@ -26,6 +28,8 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
     ) -> None:
         super().setup(space, robot, seed)
 
+        self.previous_distance: Optional[float] = None
+
         if self.config.target_position is None:
             # Random target position within the screen bounds
             self.target_position = self._random.uniform(
@@ -41,15 +45,26 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
         This is the standard method for goal-conditioned environments, especially with HER.
         """
 
-        # Calculate the distance to the target position
-        distance_to_target = np.linalg.norm(
+        # --- Weights for reward components (tune these) ---
+        PROGRESS_WEIGHT = 0.01
+        SUCCESS_BONUS = 250.0
+
+        # --- 1. Calculate Progress Reward ---
+        current_distance = np.linalg.norm(
             np.array(robot.position) - np.array(self.target_position)
         )
 
-        # Reward is inversely proportional to the distance
-        reward = -distance_to_target
+        reward = 0.0
+        if self.previous_distance is not None:
+            # Reward is the reduction in distance
+            reward += PROGRESS_WEIGHT * float(self.previous_distance - current_distance)
 
-        # Optionally, you can add a small constant to avoid negative rewards
+        self.previous_distance = float(current_distance)
+
+        # --- 2. Add Success Bonus ---
+        if current_distance < 10.0:  # Your success radius
+            reward += SUCCESS_BONUS
+
         return float(reward)
 
     def is_terminated(self, robot: Robot) -> bool:
@@ -59,7 +74,7 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
         distance_to_target = np.linalg.norm(
             np.array(robot.position) - np.array(self.target_position)
         )
-        return float(distance_to_target) < 1.0
+        return float(distance_to_target) < 10.0
 
     def get_observation(self, robot: Robot) -> Observation:
         return Observation(
@@ -82,4 +97,26 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
             velocity=(0, 0),  # No velocity goal for static target
             angle=0.0,  # No angle goal for static target
             angular_velocity=0.0,  # No angular velocity goal for static target
+        )
+
+    # TODO: Work only with observations from the robot
+    def get_achieved_goal(self, robot: Robot):
+        """Get the current position of the robot as the achieved goal."""
+        return Goal(
+            position=robot.position,
+            velocity=robot.base.body.velocity,
+            angle=robot.base.body.angle,
+            angular_velocity=robot.base.body.angular_velocity,
+        )
+
+    def render(self, screen):
+        target_center_pygame = pymunk_to_pygame_coord(
+            self.target_position, self.config.screen.height
+        )
+        pygame.draw.circle(
+            screen,
+            pygame.Color("lightgreen"),
+            target_center_pygame,
+            10,
+            2,
         )

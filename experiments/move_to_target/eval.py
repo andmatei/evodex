@@ -3,12 +3,12 @@ import argparse
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
-from experiments.utils import load_config, make_env
+from experiments.utils import load_config, make_env, EnvMask
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log-dir", type=str, default="logs/ppo_single_agent/")
+    parser.add_argument("--log-dir", type=str, default="logs/move_to_target/")
     parser.add_argument(
         "--scenario-config",
         "-sc",
@@ -38,6 +38,7 @@ if __name__ == "__main__":
             scenario_config=scenario_config,
             simulator_config=simulator_config,
             render_mode="human",
+            mask=EnvMask.BASE,
         ),
         n_envs=1,
     )

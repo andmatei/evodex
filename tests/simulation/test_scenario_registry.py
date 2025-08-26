@@ -95,7 +95,7 @@ def test_load_scenario_from_dict_succeeds() -> None:
     config_data = {
         "name": "dummy_scenario",
         "screen": {"width": 800, "height": 600},
-        "robot_start_position": (10, 20),
+        "robot": {"position": (10, 20)},
         "extra_param": 99,  # Override the default
     }
 

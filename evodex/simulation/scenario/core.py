@@ -19,10 +19,15 @@ class ScenarioDimensionsConfig(BaseModel):
     height: int = Field(..., description="Screen height")
 
 
+# TODO: Make this random if not initialised
+class RobotConfig(BaseModel):
+    position: Tuple[float, float] = Field(..., description="Robot start position")
+
+
 class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
     screen: ScenarioDimensionsConfig = Field(..., description="Scenario dimenisions")
-    robot_start_position: Tuple[float, float] = Field(..., description="Start position")
+    robot: RobotConfig = Field(..., description="Robot configuration")
 
 
 C = TypeVar("C", bound=ScenarioConfig)
@@ -44,7 +49,7 @@ class Scenario(Generic[C], ABC):
         robot.collision.listen(COLLISION_TYPE_GRASPING_OBJECT)
 
         robot.add_to_space(space)
-        robot.position = self.config.robot_start_position
+        robot.position = self.config.robot.position
         robot.angle = np.pi / 2
 
     @abstractmethod

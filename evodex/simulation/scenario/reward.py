@@ -144,3 +144,36 @@ class LiftReward(RewardFunction):
         goal: Goal,
     ) -> float:
         return 0.0
+
+
+class StabilityReward(RewardFunction):
+    def _calculate_reward(
+        self,
+        intrinsic_obs: RobotObservation,
+        extrinsic_obs: ScenarioObservation,
+        achieved_goal: Goal,
+        goal: Goal,
+    ) -> float:
+        return 0.0
+
+
+class ReachingReward(RewardFunction):
+    def _calculate_reward(
+        self,
+        intrinsic_obs: RobotObservation,
+        extrinsic_obs: ScenarioObservation,
+        achieved_goal: Goal,
+        goal: Goal,
+    ) -> float:
+        return 0.0
+
+
+class SuccessReward(RewardFunction):
+    def _calculate_reward(
+        self,
+        intrinsic_obs: RobotObservation,
+        extrinsic_obs: ScenarioObservation,
+        achieved_goal: Goal,
+        goal: Goal,
+    ) -> float:
+        return 0.0

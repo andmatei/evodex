@@ -4,9 +4,16 @@ import numpy as np
 
 from gymnasium.wrappers import RescaleAction
 from typing import Optional
+from enum import Enum
 
-from evodex.simulation import RobotHandEnv
+from evodex.simulation import RobotHandEnv, BaseMaskWrapper
 from evodex.simulation.wrapper import flatten_env
+
+
+class EnvMask(Enum):
+    NONE = 0
+    BASE = 1
+    FINGERS = 2
 
 
 def load_config(path: str) -> dict:
@@ -29,6 +36,7 @@ def make_env(
     scenario_config: dict,
     simulator_config: dict,
     render_mode: Optional[str] = None,
+    mask: EnvMask = EnvMask.NONE,
 ) -> gym.Env:
     """
     Create a custom environment for the robot hand simulation.
@@ -42,13 +50,20 @@ def make_env(
     Returns:
         gym.Env: The custom environment instance.
     """
-    env: gym.Env = flatten_env(
-        RobotHandEnv(
-            robot_config=robot_config,
-            scenario_config=scenario_config,
-            env_config=simulator_config,
-            render_mode=render_mode,
-        ),
+
+    robot_env: RobotHandEnv = RobotHandEnv(
+        robot_config=robot_config,
+        scenario_config=scenario_config,
+        env_config=simulator_config,
+        render_mode=render_mode,
+    )
+
+    env: gym.Env = robot_env
+    if mask == EnvMask.BASE:
+        env = BaseMaskWrapper(robot_env)
+
+    env = flatten_env(
+        env,
         observation=True,
         action=True,
     )

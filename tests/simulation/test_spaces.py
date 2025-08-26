@@ -28,6 +28,10 @@ def test_env_observation_and_action_spaces() -> None:
     assert env.observation_space.contains(obs), "Observation not in observation space"
     # Check observation satisfies pydantic model
     Observation.model_validate(obs)
+    # Sample a new observation and check it's valid
+    obs = env.observation_space.sample()
+    # Validate against pydantic model
+    Observation.model_validate(obs)
 
     # Sample action and check it's in action space
     action = env.action_space.sample()

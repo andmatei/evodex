@@ -2,7 +2,7 @@ import torch
 import os
 import argparse
 
-from experiments.utils import load_config, make_env
+from experiments.utils import load_config, make_env, EnvMask
 
 from datetime import datetime
 from stable_baselines3 import PPO
@@ -12,7 +12,7 @@ from stable_baselines3.common.env_checker import check_env
 # --- Main Execution (Example Usage) ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log-dir", type=str, default="logs/ppo_single_agent/")
+    parser.add_argument("--log-dir", type=str, default="logs/move_to_target/")
     parser.add_argument(
         "--scenario-config",
         "-sc",
@@ -41,6 +41,7 @@ if __name__ == "__main__":
             robot_config=robot_config,
             scenario_config=scenario_config,
             simulator_config=simulator_config,
+            mask=EnvMask.BASE,
         ),
         n_envs=4,
     )
@@ -50,6 +51,7 @@ if __name__ == "__main__":
             robot_config=robot_config,
             scenario_config=scenario_config,
             simulator_config=simulator_config,
+            mask=EnvMask.BASE,
         ),
         warn=True,
     )
@@ -77,7 +79,7 @@ if __name__ == "__main__":
 
     # 4. Train the Agent
     print("🚀 Starting training...")
-    TRAINING_TIMESTEPS = 10_000_000
+    TRAINING_TIMESTEPS = 2_000_000
     model.learn(total_timesteps=TRAINING_TIMESTEPS)
 
     # 5. Save the Trained Model

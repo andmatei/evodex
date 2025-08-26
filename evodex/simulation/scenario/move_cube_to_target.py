@@ -2,7 +2,7 @@ import numpy as np
 import pymunk
 import pygame
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
@@ -11,6 +11,12 @@ from .types import Goal, Observation, ObjectObservation
 
 from evodex.simulation.robot import Robot, Action
 from evodex.simulation.robot.utils import Reference
+
+
+class ObjectConfig(BaseModel):
+    type: str = "cube"
+    position: Tuple[float, float]
+    size: Tuple[float, float]
 
 
 # TODO: Add the goal in the scenario config

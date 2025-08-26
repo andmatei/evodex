@@ -9,8 +9,8 @@ from experiments.utils import load_config
 if __name__ == "__main__":
     # 1. Load Configurations
     print("➡️  Loading configurations...")
-    robot_config = load_config("configs/base_robot.yaml")
-    scenario_config = load_config("configs/move_cube_scenario.yaml")
+    robot_config = load_config("configs/robot/base_robot.yaml")
+    scenario_config = load_config("configs/scenario/move_to_target_scenario.yaml")
     simulator_config = load_config("configs/base_simulator.yaml")
 
     # 2. Create and Check the Custom Environment

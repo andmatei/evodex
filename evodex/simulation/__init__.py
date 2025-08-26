@@ -1,4 +1,4 @@
-from .env import RobotHandEnv
+from .env import RobotHandEnv, BaseMaskWrapper
 from .types import Observation
 from .robot import Action
 

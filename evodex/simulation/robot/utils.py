@@ -1,16 +1,18 @@
 import pymunk
 
 from typing import Union, Tuple
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class Reference(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     position: pymunk.Vec2d = Field(
-        default=pymunk.Vec2d(0.0, 0.0),
+        default_factory=lambda: pymunk.Vec2d(0.0, 0.0),
         description="The (x, y) position of the reference point.",
     )
     velocity: pymunk.Vec2d = Field(
-        default=pymunk.Vec2d(0.0, 0.0),
+        default_factory=lambda: pymunk.Vec2d(0.0, 0.0),
         description="The (x, y) velocity of the reference point.",
     )
     angle: float = Field(default=0.0, description="The angle of the reference point.")

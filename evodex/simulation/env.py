@@ -9,6 +9,7 @@ from typing import Optional
 from .utils import to_observation
 from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
+from .robot.spaces import BaseAction
 from .scenario import Scenario, ScenarioRegistry
 from .config import EnvConfig
 from .types import Observation, RobotObservation
@@ -339,3 +340,128 @@ class RobotHandEnv(gym.Env):
                 desired_goal=goal,
             )
         )
+
+
+class BaseMaskWrapper(gym.Wrapper):
+    def __init__(self, env: RobotHandEnv):
+        super().__init__(env)
+        self.env: RobotHandEnv = env
+
+        self.action_space = spaces.Dict(
+            {
+                "velocity": spaces.Box(
+                    low=env.robot_config.limits.velocity.min,
+                    high=env.robot_config.limits.velocity.max,
+                    shape=(2,),
+                    dtype=np.float32,
+                ),
+                "omega": spaces.Box(
+                    low=env.robot_config.limits.omega.min,
+                    high=env.robot_config.limits.omega.max,
+                    shape=(1,),
+                    dtype=np.float32,
+                ),
+            }
+        )
+
+        self.observation_space = spaces.Dict(
+            {
+                "base": spaces.Dict(
+                    {
+                        "position": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(2,),
+                            dtype=np.float32,
+                        ),
+                        "angle": spaces.Box(
+                            low=-np.pi,
+                            high=np.pi,
+                            shape=(),
+                            dtype=np.float32,
+                        ),
+                        "velocity": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(2,),
+                            dtype=np.float32,
+                        ),
+                        "angular_velocity": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(),
+                            dtype=np.float32,
+                        ),
+                    }
+                ),
+                "object": spaces.Dict(
+                    {
+                        "velocity": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(2,),
+                            dtype=np.float32,
+                        ),
+                        "position": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(2,),
+                            dtype=np.float32,
+                        ),
+                        "angle": spaces.Box(
+                            low=-np.pi,
+                            high=np.pi,
+                            shape=(),
+                            dtype=np.float32,
+                        ),
+                        "angular_velocity": spaces.Box(
+                            low=-np.inf,
+                            high=np.inf,
+                            shape=(),
+                            dtype=np.float32,
+                        ),
+                        "size": spaces.Box(
+                            low=0,
+                            high=np.inf,
+                            shape=(2,),
+                            dtype=np.float32,
+                        ),
+                    }
+                ),
+            }
+        )
+
+    def step(self, action: dict) -> tuple:
+        # Apply action masking
+        action = self._filter_action(action)
+
+        full_obs, reward, terminated, truncated, info = self.env.step(action)
+        obs = self._filter_observation(full_obs)
+
+        return obs, reward, terminated, truncated, info
+
+    def reset(self, **kwargs):
+        full_obs, info = self.env.reset(**kwargs)
+        return self._filter_observation(full_obs), info
+
+    def _filter_action(self, action: dict) -> dict:
+        base_action = BaseAction(**action)
+        robot_action = Action(
+            base=base_action,
+            fingers=[
+                [0.0 for _ in finger.segments]
+                for finger in self.env.robot_config.fingers
+            ],
+        )
+
+        return robot_action.model_dump()
+
+    def _filter_observation(self, obs: dict) -> dict:
+        observation = Observation(**obs)
+        base_observation = observation.observation.extrinsic.robot.base
+        obj_observation = observation.observation.extrinsic.object
+
+        return {
+            "base": base_observation.model_dump(),
+            "object": obj_observation.model_dump(),
+        }

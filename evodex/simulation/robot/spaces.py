@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from pydantic import BaseModel, Field
 
 
@@ -15,8 +15,8 @@ FingerAction = List[float]
 
 
 class Action(BaseModel):
-    base: BaseAction
-    fingers: List[FingerAction]
+    base: Optional[BaseAction] = Field(default=None)
+    fingers: Optional[List[FingerAction]] = Field(default=None)
 
 
 class BaseObservation(BaseModel):

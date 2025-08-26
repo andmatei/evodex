@@ -51,7 +51,7 @@ class LoggingConfig(BaseModel):
 
 
 class KeyboardControlConfig(BaseModel):
-    enabled: bool = Field(default=True, description="Keyboard control enabled")
+    enabled: bool = Field(default=False, description="Keyboard control enabled")
     move_speed: float = Field(default=150, description="Keyboard move speed")
     angular_speed: float = Field(default=1.5, description="Keyboard angular speed")
 

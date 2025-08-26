@@ -54,10 +54,14 @@ class Robot:
     def act(self, action: Action):
         """Apply actions to the robot base and its fingers."""
         # Apply base movement
-        self.base.body.velocity = action.base.velocity
-        self.base.body.angular_velocity = action.base.omega
+        if action.base is not None:
+            self.base.body.velocity = action.base.velocity
+            self.base.body.angular_velocity = action.base.omega
 
         # Apply motor rates to fingers
+        if action.fingers is None:
+            return
+
         if len(action.fingers) != len(self.fingers):
             raise ValueError(
                 f"Action fingers length {len(action.fingers)} does not match robot fingers count {len(self.fingers)}."

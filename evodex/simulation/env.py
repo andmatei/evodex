@@ -6,6 +6,7 @@ import pygame
 from gymnasium import spaces
 from typing import Optional
 
+from .controller import KeyboardController
 from .utils import to_observation
 from .renderer import Renderer
 from .robot import Robot, RobotConfig, Action
@@ -40,6 +41,9 @@ class RobotHandEnv(gym.Env):
         self.space = pymunk.Space()
         self.space.gravity = self.env_config.simulation.gravity
         self.dt = self.env_config.simulation.dt
+
+        # Initialise controller
+        self.controller = KeyboardController(self.env_config.keyboard_control)
 
         # Define action and observation spaces
         self.action_space = spaces.Dict(
@@ -312,6 +316,7 @@ class RobotHandEnv(gym.Env):
                 if event.type == pygame.QUIT:
                     self.renderer.close()
                     return
+                self.controller.handle_event(event)
 
             # Draw logic
             self.renderer.render(self.space, self.scenario)

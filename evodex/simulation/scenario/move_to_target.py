@@ -7,7 +7,6 @@ from pydantic import Field
 
 from .core import GroundScenario, ScenarioConfig, ScenarioRegistry
 from .types import Goal, Observation, ObjectObservation
-from .utils import pymunk_to_pygame_coord
 
 from evodex.simulation.robot import Robot, Action
 from evodex.simulation.robot.utils import Reference
@@ -48,7 +47,6 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
         # --- Weights for reward components (tune these) ---
         PROGRESS_WEIGHT = 1.0
         SUCCESS_BONUS = 250.0
-        ENERGY_PENALTY = 0.01
         DISTANCE_PENALTY = 0.1
 
         # --- 1. Calculate Progress Reward ---
@@ -63,18 +61,13 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
 
         self.previous_distance = float(current_distance)
 
-        # Energy penalty (sum of squared action values)
-        # action_magnitude = np.sum(np.square(np.array(action.base.velocity))) + np.sum(np.square(np.array(action.base.omega)))
-        # reward -= ENERGY_PENALTY * action_magnitude
-
-        # Small penalty for being far from the target
-        reward -= DISTANCE_PENALTY * float(current_distance)
-
-        print("Current distance:", current_distance)
         # --- 2. Add Success Bonus ---
         if current_distance < 10.0:  # Your success radius
             print("🎉 Success!")
             reward += SUCCESS_BONUS
+
+        # --- 3. Small penalty for being far from the target ---
+        reward -= DISTANCE_PENALTY * float(current_distance)
 
         return float(reward)
 

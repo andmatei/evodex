@@ -6,8 +6,9 @@ from pydantic import Field, BaseModel
 from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
-from .utils import COLLISION_TYPE_GRASPING_OBJECT, pymunk_to_pygame_coord
+from .utils import COLLISION_TYPE_GRASPING_OBJECT
 from .types import Goal, Observation, ObjectObservation
+from .reward import RewardBuilder
 
 from evodex.simulation.robot import Robot, Action
 from evodex.simulation.robot.utils import Reference
@@ -93,12 +94,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
 
         self._objects.extend([self.cube_body, self.cube_shape])
 
-        # TODO: Move this to a reward function builder
-        self.prev_norm_dist_hand_to_cube = None
-        self.prev_norm_dist_cube_to_target = None
-        self.max_distance = np.linalg.norm(
-            [self.config.screen.width, self.config.screen.height]
-        )
+        self._reward_function = RewardBuilder(robot, self).add(Reach)
 
     def get_reward(self, robot: Robot, action: Action) -> float:
         """
@@ -165,13 +161,10 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         )
 
     def render(self, screen):
-        target_center_pygame = pymunk_to_pygame_coord(
-            self.target_pos, self.config.screen.height
-        )
         pygame.draw.circle(
             screen,
             pygame.Color("lightgreen"),
-            target_center_pygame,
+            self.target_pos,
             self.config.success_radius,
             2,
         )

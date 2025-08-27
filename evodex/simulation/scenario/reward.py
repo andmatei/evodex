@@ -1,7 +1,7 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Type
 
 from .core import Scenario
 from .types import Observation as ScenarioObservation, Goal
@@ -73,12 +73,8 @@ class CompositeRewardFunction(RewardFunction):
 class RewardBuilder:
     def __init__(
         self,
-        robot: Robot,
-        scenario: Scenario,
         reward_functions: List[RewardFunction] = [],
     ):
-        self._robot = robot
-        self._scenario = scenario
         self._reward_functions = reward_functions
 
     def add(self, reward_function: RewardFunction) -> "RewardBuilder":
@@ -89,6 +85,24 @@ class RewardBuilder:
         return CompositeRewardFunction(self._reward_functions)
 
 
+class RewardRegistry:
+    _registry: Dict[str, Type[RewardFunction]] = {}
+
+    @classmethod
+    def register(cls, reward_function: Type[RewardFunction]) -> None:
+        name = reward_function.__name__.removesuffix("Reward").lower()
+
+        cls._registry[name] = reward_function
+
+    @classmethod
+    def get(cls, name: str) -> Type[RewardFunction]:
+        reward_function = cls._registry.get(name)
+        if reward_function is None:
+            raise ValueError(f"Reward function '{name}' not found.")
+        return reward_function
+
+
+@RewardRegistry.register
 class GraspingReward(RewardFunction):
     def _calculate_reward(
         self,
@@ -113,6 +127,7 @@ class GraspingReward(RewardFunction):
         return 0.0
 
 
+@RewardRegistry.register
 class TargetReward(RewardFunction):
     def _calculate_reward(
         self,
@@ -135,6 +150,7 @@ class TargetReward(RewardFunction):
         return reward
 
 
+@RewardRegistry.register
 class LiftReward(RewardFunction):
     def _calculate_reward(
         self,
@@ -146,6 +162,7 @@ class LiftReward(RewardFunction):
         return 0.0
 
 
+@RewardRegistry.register
 class StabilityReward(RewardFunction):
     def _calculate_reward(
         self,
@@ -157,6 +174,7 @@ class StabilityReward(RewardFunction):
         return 0.0
 
 
+@RewardRegistry.register
 class ReachingReward(RewardFunction):
     def _calculate_reward(
         self,
@@ -168,6 +186,7 @@ class ReachingReward(RewardFunction):
         return 0.0
 
 
+@RewardRegistry.register
 class SuccessReward(RewardFunction):
     def _calculate_reward(
         self,

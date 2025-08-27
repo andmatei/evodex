@@ -10,6 +10,7 @@ from typing import Tuple, List
 
 from .types import Goal, Observation
 from .utils import COLLISION_TYPE_GRASPING_OBJECT
+from .reward import RewardConfig, RewardBuilder
 
 from evodex.simulation.robot import Robot, Action
 
@@ -19,7 +20,6 @@ class ScenarioDimensionsConfig(BaseModel):
     height: int = Field(..., description="Screen height")
 
 
-# TODO: Make this random if not initialised
 class RobotConfig(BaseModel):
     position: Tuple[float, float] = Field(..., description="Robot start position")
 
@@ -28,6 +28,7 @@ class ScenarioConfig(BaseModel):
     name: str = Field(..., description="Scenario name")
     screen: ScenarioDimensionsConfig = Field(..., description="Scenario dimenisions")
     robot: RobotConfig = Field(..., description="Robot configuration")
+    reward: Optional[List[RewardConfig]] = Field(None, description="List of reward configurations")
 
 
 C = TypeVar("C", bound=ScenarioConfig)
@@ -39,6 +40,9 @@ class Scenario(Generic[C], ABC):
 
         self._objects: List[pymunk.Body | pymunk.Shape | pymunk.Constraint] = []
         self._random: np.random.Generator = np.random.default_rng()
+
+        if self.config.reward is not None:
+            self._reward = RewardBuilder.from_config(self.config.reward)
 
     @abstractmethod
     def setup(
@@ -52,9 +56,21 @@ class Scenario(Generic[C], ABC):
         robot.position = self.config.robot.position
         robot.angle = np.pi / 2
 
-    @abstractmethod
     def get_reward(self, robot: Robot, action: Action) -> float:
-        pass
+        if self._reward is None:
+            return 0.0
+
+        intrinsic_obs = robot.get_intrinsic_observation()
+        extrinsic_obs = self.get_observation(robot)
+        achieved_goal = self.get_achieved_goal(robot)
+        goal = self.get_goal(robot)
+
+        return self._reward(
+            intrinsic_obs=intrinsic_obs,
+            extrinsic_obs=extrinsic_obs,
+            achieved_goal=achieved_goal,
+            goal=goal,
+        )
 
     @abstractmethod
     def is_terminated(self, robot: Robot) -> bool:

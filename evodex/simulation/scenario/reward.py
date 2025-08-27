@@ -1,6 +1,8 @@
+import re
 import numpy as np
 
 from abc import ABC, abstractmethod
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Type
 
 from .core import Scenario
@@ -70,6 +72,34 @@ class CompositeRewardFunction(RewardFunction):
         self._reward_functions.extend(reward_functions)
 
 
+class RewardRegistry:
+    _registry: Dict[str, Type[RewardFunction]] = {}
+
+    @classmethod
+    def _normalise_name(cls, name: str) -> str:
+        # Alter the name of the reward function to match snake case
+        name = re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+        name = name.removesuffix("reward")
+        return name
+
+    @classmethod
+    def register(cls, reward_function: Type[RewardFunction]) -> None:
+        name = cls._normalise_name(reward_function.__name__)
+        cls._registry[name] = reward_function
+
+    @classmethod
+    def get(cls, name: str) -> Type[RewardFunction]:
+        reward_function = cls._registry.get(name)
+        if reward_function is None:
+            raise ValueError(f"Reward function '{name}' not found.")
+        return reward_function
+
+
+class RewardConfig(BaseModel):
+    name: str = Field(..., description="Name of the reward function")
+    weight: float = Field(1.0, description="Weight of the reward function")
+
+
 class RewardBuilder:
     def __init__(
         self,
@@ -83,23 +113,15 @@ class RewardBuilder:
 
     def build(self) -> RewardFunction:
         return CompositeRewardFunction(self._reward_functions)
-
-
-class RewardRegistry:
-    _registry: Dict[str, Type[RewardFunction]] = {}
-
-    @classmethod
-    def register(cls, reward_function: Type[RewardFunction]) -> None:
-        name = reward_function.__name__.removesuffix("Reward").lower()
-
-        cls._registry[name] = reward_function
-
-    @classmethod
-    def get(cls, name: str) -> Type[RewardFunction]:
-        reward_function = cls._registry.get(name)
-        if reward_function is None:
-            raise ValueError(f"Reward function '{name}' not found.")
-        return reward_function
+    
+    @staticmethod
+    def from_config(reward_configs: List[RewardConfig]) -> RewardFunction:
+        builder = RewardBuilder()
+        for config in reward_configs:
+            reward_class = RewardRegistry.get(config.name)
+            reward_function = reward_class(weight=config.weight)
+            builder.add(reward_function)
+        return builder.build()
 
 
 @RewardRegistry.register
@@ -195,4 +217,6 @@ class SuccessReward(RewardFunction):
         achieved_goal: Goal,
         goal: Goal,
     ) -> float:
+        if np.linalg.norm(np.array(achieved_goal.position) - np.array(goal.position)) < 0.1:
+            return 1.0
         return 0.0

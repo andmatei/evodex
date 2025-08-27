@@ -8,9 +8,8 @@ from typing import Tuple, Optional, Literal
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .utils import COLLISION_TYPE_GRASPING_OBJECT
 from .types import Goal, Observation, ObjectObservation
-from .reward import RewardBuilder
 
-from evodex.simulation.robot import Robot, Action
+from evodex.simulation.robot import Robot
 from evodex.simulation.robot.utils import Reference
 
 
@@ -48,10 +47,6 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         super().__init__(config)
         self.cube_body: Optional[pymunk.Body] = None
         self.cube_shape: Optional[pymunk.Shape] = None
-
-        # TODO: Separate scenario and mini reward functions
-        self.prev_dist_cube_to_target: Optional[float] = None
-        self.prev_dist_hand_to_cube: Optional[float] = None
 
     def setup(
         self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None
@@ -93,29 +88,6 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         space.add(self.cube_body, self.cube_shape)
 
         self._objects.extend([self.cube_body, self.cube_shape])
-
-        self._reward_function = RewardBuilder(robot, self).add(Reach)
-
-    def get_reward(self, robot: Robot, action: Action) -> float:
-        """
-        Calculates a dense, shaped reward for the grasping task.
-        This is the standard method for goal-conditioned environments, especially with HER.
-        """
-
-        # TODO: Check if initialised (add is initialised method or property)
-        if self.cube_body is None:
-            return 0.0
-
-        # --- Weights for different reward components (hyperparameters to tune) ---
-        REACH_WEIGHT = 0.5
-        GRASP_WEIGHT = 0.25
-        LIFT_WEIGHT = 0.5
-        MOVE_WEIGHT = 1.0
-        STABILITY_PENALTY = 0.05
-        ACTION_PENALTY = 0.001
-        SUCCESS_BONUS = 250.0
-
-        return 0.0
 
     def is_terminated(self, robot: Robot) -> bool:
         if self.cube_body:

@@ -181,7 +181,25 @@ class LiftReward(RewardFunction):
         achieved_goal: Goal,
         goal: Goal,
     ) -> float:
-        return 0.0
+        contact_points = sum(
+            1 for finger in intrinsic_obs.fingers
+            for segment in finger.segments if segment.is_touching
+        )
+        is_grasping = contact_points > 1
+
+        if not is_grasping:
+            return 0.0
+
+        obj_height = achieved_goal.position[1]
+        ground_height = 590 # TODO: Don't hardcode this
+        
+        # Calculate how high the object is lifted relative to the ground
+        lift_height = obj_height - ground_height
+
+        # Normalize by screen height for a consistent reward scale
+        normalized_lift = lift_height / 600
+        
+        return max(0, normalized_lift) # Only reward positive lift
 
 
 @RewardRegistry.register
@@ -193,7 +211,19 @@ class StabilityReward(RewardFunction):
         achieved_goal: Goal,
         goal: Goal,
     ) -> float:
+        target_pos = np.array(goal.position)
+        cube_pos = np.array(achieved_goal.position)
+        dist_to_target = np.linalg.norm(cube_pos - target_pos)
+
+        # Only apply penalty when the object is close to the target
+        if dist_to_target < 10 * 2.0: # TODO: Don't hardcode success radius
+            vel_magnitude = np.linalg.norm(achieved_goal.velocity)
+            ang_vel_magnitude = abs(achieved_goal.angular_velocity)
+            # Return a negative value as this is a penalty
+            return float(-(vel_magnitude + ang_vel_magnitude))
+
         return 0.0
+
 
 
 @RewardRegistry.register
@@ -205,7 +235,21 @@ class ReachReward(RewardFunction):
         achieved_goal: Goal,
         goal: Goal,
     ) -> float:
-        return 0.0
+        obj_pos = np.array(achieved_goal.position)
+        fingertip_positions = [np.array(f.tip.position) for f in extrinsic_obs.robot.fingers]
+
+        current_dist = min(float(np.linalg.norm(pos - obj_pos)) for pos in fingertip_positions)
+        norm_dist = current_dist / 1000. #TODO: Don't hardcode this and access the scenario config
+
+        prev_dist = self._state.get("prev_dist")
+        reward = 0.0
+        if prev_dist is not None:
+            # Reward is the reduction in normalized distance
+            reward = prev_dist - norm_dist
+        
+        self._state["prev_dist"] = norm_dist
+        return reward
+        
 
 
 @RewardRegistry.register

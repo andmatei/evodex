@@ -2,40 +2,29 @@ import numpy as np
 import pymunk
 import pygame
 
-from pydantic import Field, BaseModel
+from pydantic import Field
 from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
-from .utils import COLLISION_TYPE_GRASPING_OBJECT
 from .types import Goal, Observation, ObjectObservation
+from .object import AnyObjectConfig, ObjectConfig, ObjectFactory
 
 from evodex.simulation.robot import Robot
 from evodex.simulation.robot.utils import Reference
 
 
-class ObjectConfig(BaseModel):
-    type: str = "cube"
-    position: Tuple[float, float]
-    size: Tuple[float, float]
-
-
 # TODO: Add the goal in the scenario config
-class MoveCubeToTargetScenarioConfig(ScenarioConfig):
+class MoveObjectToTargetScenarioConfig(ScenarioConfig):
     name: Literal["move_cube_to_target"] = "move_cube_to_target"
     target_pos: Optional[Tuple[float, float]] = Field(
         default=None, description="Target position"
     )
     success_radius: float = Field(..., description="Success radius")
-    cube_size: Tuple[float, float] = Field(
-        ..., description="Cube size"
-    )  # TODO: Extrapolate to more types of objects
-    cube_initial_pos: Optional[Tuple[float, float]] = Field(
-        None, description="Cube initial position"
-    )
+    object: AnyObjectConfig = Field(..., description="The object to be moved") # type: ignore
 
 
 @ScenarioRegistry.register
-class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
+class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig]):
     """
     Scenario where a cube is moved to a target position.
     The cube is initialized at a random position above the ground.
@@ -43,7 +32,7 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
     The scenario is considered successful when the cube is within a certain radius of the target position.
     """
 
-    def __init__(self, config: MoveCubeToTargetScenarioConfig):
+    def __init__(self, config: MoveObjectToTargetScenarioConfig):
         super().__init__(config)
         self.cube_body: Optional[pymunk.Body] = None
         self.cube_shape: Optional[pymunk.Shape] = None
@@ -62,50 +51,45 @@ class MoveCubeToTargetScenario(GroundScenario[MoveCubeToTargetScenarioConfig]):
         else:
             self.target_pos = self.config.target_pos
 
-        if self.config.cube_initial_pos is not None:
-            self.cube_initial_pos = self.config.cube_initial_pos
+
+        if not isinstance(self.config.object, ObjectConfig):
+            raise ValueError("Invalid object configuration.")
+
+        if self.config.object.position is not None:
+            self.object_position = self.config.object.position
         else:
             # Random initial position for the cube
-            self.cube_initial_pos = np.array(
+            self.object_position = np.array(
                 [
                     np.random.uniform(
-                        low=self.config.cube_size[0] / 2,
-                        high=self.config.screen.width - self.config.cube_size[0] / 2,
+                        low=20,
+                        high=self.config.screen.width - 20,
                     ),
-                    self.config.cube_size[1] / 2 + 10,  # Slightly above the ground
+                    20,  # Slightly above the ground
                 ]
             ).tolist()
 
-        mass = 1.0
-        moment = pymunk.moment_for_box(mass, self.config.cube_size)
 
-        self.cube_body = pymunk.Body(mass, moment)
-        self.cube_body.position = self.cube_initial_pos
-        self.cube_shape = pymunk.Poly.create_box(self.cube_body, self.config.cube_size)
-        self.cube_shape.friction = 0.7
-        self.cube_shape.elasticity = 0.3
-        self.cube_shape.collision_type = COLLISION_TYPE_GRASPING_OBJECT
-        space.add(self.cube_body, self.cube_shape)
-
-        self._objects.extend([self.cube_body, self.cube_shape])
+        self.object = ObjectFactory.create(self.config.object)
+        self.object.add_to_space(space)
 
     def is_terminated(self, robot: Robot) -> bool:
-        if self.cube_body:
-            cube_pos = np.array([self.cube_body.position.x, self.cube_body.position.y])
-            if np.linalg.norm(cube_pos - self.target_pos) < self.config.success_radius:
+        if self.object:
+            object_pos = np.array([self.object.position.x, self.object.position.y])
+            if np.linalg.norm(object_pos - self.target_pos) < self.config.success_radius:
                 return True
         return False
 
     def get_observation(self, robot: Robot) -> Observation:
-        if not self.cube_body:
+        if not self.object:
             raise ValueError("Scenario is not initialized.")
 
         return Observation(
             object=ObjectObservation(
-                position=(self.cube_body.position.x, self.cube_body.position.y),
-                velocity=(self.cube_body.velocity.x, self.cube_body.velocity.y),
-                angle=self.cube_body.angle,
-                angular_velocity=self.cube_body.angular_velocity,
+                position=(self.object.position.x, self.object.position.y),
+                velocity=(self.object.velocity.x, self.object.velocity.y),
+                angle=self.object.angle,
+                angular_velocity=self.object.angular_velocity,
                 size=self.config.cube_size,
             ),
             robot=robot.get_extrinsic_observation(Reference.from_body(self.cube_body)),

@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Type
 
-from .core import Scenario
 from .types import Observation as ScenarioObservation, Goal
 
 from evodex.simulation.robot import Robot, IntrinsicObservation as RobotObservation

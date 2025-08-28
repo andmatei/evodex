@@ -5,7 +5,9 @@ screen:
 robot:
   position: [200, 400]
 success_radius: 50
-cube_size: [50, 50]
+object:
+  type: cube
+  size: [50, 50]
 reward:
   - name: reach
     weight: 0.5

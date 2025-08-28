@@ -77,13 +77,14 @@ class RewardRegistry:
     @classmethod
     def _normalise_name(cls, name: str) -> str:
         # Alter the name of the reward function to match snake case
+        name = name.removesuffix("Reward")
         name = re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
-        name = name.removesuffix("reward")
         return name
 
     @classmethod
     def register(cls, reward_function: Type[RewardFunction]) -> None:
         name = cls._normalise_name(reward_function.__name__)
+        print(f"Registering reward function: {name}")
         cls._registry[name] = reward_function
 
     @classmethod
@@ -124,7 +125,7 @@ class RewardBuilder:
 
 
 @RewardRegistry.register
-class GraspingReward(RewardFunction):
+class GraspReward(RewardFunction):
     def _calculate_reward(
         self,
         intrinsic_obs: RobotObservation,
@@ -149,7 +150,7 @@ class GraspingReward(RewardFunction):
 
 
 @RewardRegistry.register
-class TargetReward(RewardFunction):
+class MoveReward(RewardFunction):
     def _calculate_reward(
         self,
         intrinsic_obs: RobotObservation,
@@ -196,7 +197,7 @@ class StabilityReward(RewardFunction):
 
 
 @RewardRegistry.register
-class ReachingReward(RewardFunction):
+class ReachReward(RewardFunction):
     def _calculate_reward(
         self,
         intrinsic_obs: RobotObservation,

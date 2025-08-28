@@ -1,0 +1,23 @@
+name: move_cube_to_target
+screen:
+  width: 800
+  height: 600
+robot:
+  position: [200, 400]
+success_radius: 50
+object:
+  type: custom
+  vertices: [[0, 0], [50, 0], [50, 50], [0, 50]]
+reward:
+  - name: reach
+    weight: 0.5
+  - name: grasp
+    weight: 0.25
+  - name: lift
+    weight: 0.5
+  - name: move
+    weight: 1.0
+  - name: stability
+    weight: 0.05
+  - name: success
+    weight: 250.0

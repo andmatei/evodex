@@ -15,9 +15,6 @@ class ObjectObservation(BaseModel):
     angular_velocity: float = Field(
         ..., description="Angular velocity of the object being observed"
     )
-    size: Tuple[float, float] = Field(
-        ..., description="Size of the object being observed (width, height)"
-    )
 
 
 class Goal(BaseModel):

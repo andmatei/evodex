@@ -7,13 +7,12 @@ from typing import Tuple, Optional, Literal
 
 from .core import GroundScenario, ScenarioRegistry, ScenarioConfig
 from .types import Goal, Observation, ObjectObservation
-from .object import AnyObjectConfig, ObjectConfig, ObjectFactory
+from .object import AnyObjectConfig, ObjectConfig, ObjectRegistry
 
 from evodex.simulation.robot import Robot
 from evodex.simulation.robot.utils import Reference
 
 
-# TODO: Add the goal in the scenario config
 class MoveObjectToTargetScenarioConfig(ScenarioConfig):
     name: Literal["move_cube_to_target"] = "move_cube_to_target"
     target_pos: Optional[Tuple[float, float]] = Field(
@@ -34,14 +33,13 @@ class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig
 
     def __init__(self, config: MoveObjectToTargetScenarioConfig):
         super().__init__(config)
-        self.cube_body: Optional[pymunk.Body] = None
-        self.cube_shape: Optional[pymunk.Shape] = None
 
     def setup(
         self, space: pymunk.Space, robot: Robot, seed: Optional[int] = None
     ) -> None:
         super().setup(space, robot, seed)
 
+        print("SETUP")
         if self.config.target_pos is None:
             # Random target position within the screen bounds
             self.target_pos = self._random.uniform(
@@ -70,8 +68,10 @@ class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig
             ).tolist()
 
 
-        self.object = ObjectFactory.create(self.config.object)
+        self.object = ObjectRegistry.create(self.config.object)
+        self.object.position = self.object_position
         self.object.add_to_space(space)
+        self._objects.extend([self.object.body, self.object.shape])
 
     def is_terminated(self, robot: Robot) -> bool:
         if self.object:
@@ -89,10 +89,9 @@ class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig
                 position=(self.object.position.x, self.object.position.y),
                 velocity=(self.object.velocity.x, self.object.velocity.y),
                 angle=self.object.angle,
-                angular_velocity=self.object.angular_velocity,
-                size=self.config.cube_size,
+                angular_velocity=self.object.angular_velocity
             ),
-            robot=robot.get_extrinsic_observation(Reference.from_body(self.cube_body)),
+            robot=robot.get_extrinsic_observation(Reference.from_body(self.object.body)),
         )
 
     def get_goal(self, robot: Robot) -> Goal:
@@ -106,14 +105,15 @@ class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig
 
     def get_achieved_goal(self, robot: Robot) -> Goal:
         """Get the current position of the cube as the achieved goal."""
-        if not self.cube_body:
+        # TODO: Do is initialised method
+        if not self.object:
             raise ValueError("Scenario is not initialized.")
 
         return Goal(
-            position=(self.cube_body.position.x, self.cube_body.position.y),
-            velocity=(self.cube_body.velocity.x, self.cube_body.velocity.y),
-            angle=self.cube_body.angle,
-            angular_velocity=self.cube_body.angular_velocity,
+            position=(self.object.position.x, self.object.position.y),
+            velocity=(self.object.velocity.x, self.object.velocity.y),
+            angle=self.object.angle,
+            angular_velocity=self.object.angular_velocity,
         )
 
     def render(self, screen):

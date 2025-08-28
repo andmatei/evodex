@@ -171,13 +171,7 @@ class RobotHandEnv(gym.Env):
                                             high=np.inf,
                                             shape=(),
                                             dtype=np.float32,
-                                        ),
-                                        "size": spaces.Box(
-                                            low=0,
-                                            high=np.inf,
-                                            shape=(2,),
-                                            dtype=np.float32,
-                                        ),
+                                        )
                                     }
                                 ),
                             }

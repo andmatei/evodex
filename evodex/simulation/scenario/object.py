@@ -71,10 +71,10 @@ class Object(Generic[C], ABC):
         pass
 
     def add_to_space(self, space: pymunk.Space) -> None:
-        space.add(self.body, self.shape)
+        space.add(self.body, *self.shapes)
 
     def remove_from_space(self, space: pymunk.Space) -> None:
-        space.remove(self.body, self.shape)
+        space.remove(self.body, *self.shapes)
 
     @property
     def position(self) -> pymunk.Vec2d:

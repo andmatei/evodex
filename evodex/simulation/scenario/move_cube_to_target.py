@@ -71,7 +71,8 @@ class MoveObjectToTargetScenario(GroundScenario[MoveObjectToTargetScenarioConfig
         self.object = ObjectRegistry.create(self.config.object)
         self.object.position = self.object_position
         self.object.add_to_space(space)
-        self._objects.extend([self.object.body, self.object.shape])
+        self._objects.append(self.object.body)
+        self._objects.extend(self.object.shapes)
 
     def is_terminated(self, robot: Robot) -> bool:
         if self.object:

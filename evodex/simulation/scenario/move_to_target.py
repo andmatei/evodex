@@ -87,7 +87,6 @@ class MoveToTargetScenario(GroundScenario[MoveToTarget]):
                 velocity=(0, 0),  # No velocity for static target
                 angle=0.0,  # No angle for static target
                 angular_velocity=0.0,  # No angular velocity for static target
-                size=(0, 0),
             ),
             robot=robot.get_extrinsic_observation(
                 Reference(position=self.target_position)

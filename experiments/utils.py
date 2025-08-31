@@ -31,6 +31,18 @@ def load_config(path: str) -> dict:
     return config
 
 
+def save_config(config: dict, path: str) -> None:
+    """
+    Save configuration to a YAML file.
+
+    Args:
+        path (str): Path to the YAML configuration file.
+        config (dict): Configuration dictionary to save.
+    """
+    with open(path, "w") as file:
+        yaml.dump(config, file)
+
+
 def make_env(
     robot_config: dict,
     scenario_config: dict,

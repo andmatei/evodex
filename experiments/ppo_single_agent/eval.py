@@ -13,7 +13,7 @@ if __name__ == "__main__":
         "--scenario-config",
         "-sc",
         type=str,
-        default="configs/scenario/move_to_target_scenario.yaml",
+        default="configs/scenario/grasping/cube.yaml",
     )
     parser.add_argument(
         "--robot-config", "-rc", type=str, default="configs/robot/base_robot.yaml"

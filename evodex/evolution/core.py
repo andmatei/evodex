@@ -76,5 +76,69 @@ def apply_mutations(config: T) -> T:
     return mutated_config
 
 
-def apply_crossover(parent_a: BaseModel, parent_b: BaseModel) -> BaseModel:
-    return parent_a
+def apply_crossover(parent_a: T, parent_b: T) -> T:
+    child_config = copy.deepcopy(parent_a)
+
+    for field_name, field_info in child_config.__class__.model_fields.items():
+        gene_metadata: Gene | GeneList | None = next((m for m in field_info.metadata if isinstance(m, (Gene, GeneList))), None)
+        current_value = getattr(child_config, field_name)
+
+        if gene_metadata:
+            # A. If the field is a GeneList, perform one-point structural crossover
+            if isinstance(gene_metadata, GeneList) and isinstance(current_value, (list, tuple)):
+                list_a = getattr(parent_a, field_name)
+                list_b = getattr(parent_b, field_name)
+                
+                if len(list_a) > 0 and len(list_b) > 0:
+                    crossover_point = np.random.randint(0, min(len(list_a), len(list_b)))
+                    new_list = list(list_a[:crossover_point]) + list(list_b[crossover_point:])
+                    
+                    max_len = gene_metadata.max_len
+                    if len(new_list) > max_len:
+                        new_list = new_list[:max_len]
+
+                    setattr(child_config, field_name, tuple(new_list))
+            
+            # B. If the field is a Gene, perform arithmetic crossover (blending)
+            elif isinstance(gene_metadata, Gene):
+                val_a = getattr(parent_a, field_name)
+                val_b = getattr(parent_b, field_name)
+                
+                alpha = np.random.rand()
+                new_val = alpha * val_a + (1 - alpha) * val_b
+                
+                # THE FIX: Check if the original field was an int and round if so
+                if field_info.annotation is int:
+                    new_val = int(round(new_val))
+                
+                setattr(child_config, field_name, new_val)
+
+        # C. Recurse into nested models (that are not genes themselves)
+        elif isinstance(current_value, BaseModel):
+            nested_child = apply_crossover(getattr(parent_a, field_name), getattr(parent_b, field_name))
+            setattr(child_config, field_name, nested_child)
+        
+        # D. Recurse into lists/tuples of nested models
+        elif isinstance(current_value, (list, tuple)):
+            list_a = getattr(parent_a, field_name)
+            list_b = getattr(parent_b, field_name)
+            
+            crossed_list = []
+            min_len = min(len(list_a), len(list_b))
+            for i in range(min_len):
+                item_a = list_a[i]
+                item_b = list_b[i]
+
+                if isinstance(item_a, BaseModel) and isinstance(item_b, BaseModel):
+                    crossed_list.append(apply_crossover(item_a, item_b))
+                else:
+                    crossed_list.append(item_a) 
+            
+            if len(list_a) > min_len:
+                crossed_list.extend(list_a[min_len:])
+            elif len(list_b) > min_len:
+                crossed_list.extend(list_b[min_len:])
+
+            setattr(child_config, field_name, type(current_value)(crossed_list))
+
+    return child_config

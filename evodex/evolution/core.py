@@ -18,58 +18,41 @@ def mutate(config: T) -> T:
     """
     mutated_config = copy.deepcopy(config)
 
-    for field_name, field_info in mutated_config.__class__.model_fields.items():
-        metadata_dict = field_info.json_schema_extra or {}
-        gene: Optional[Gene] = None
-        gene_list: Optional[GeneList] = None
-
-        if isinstance(metadata_dict, dict):
-            gene_info = metadata_dict.get("gene")
-            if isinstance(gene_info, dict):
-                gene = Gene(**gene_info)  # type: ignore
-
-            gene_list_info = metadata_dict.get("gene_list")
-            if isinstance(gene_list_info, dict):
-                gene_list = GeneList(**gene_list_info)  # type: ignore
-
+    for field_name, gene in mutated_config._genes.items():
         current_value = getattr(mutated_config, field_name)
 
-        if gene:
+        if isinstance(gene, Gene):
             # A. Handle Allele (numerical parameter) mutation
             noise = np.random.normal(0, gene.mutation_std)
             new_value = current_value + noise
 
             new_value = np.clip(new_value, gene.min_val, gene.max_val)
 
-            if field_info.annotation is int:
+            if isinstance(current_value, int):
                 new_value = int(round(new_value))
             else:
                 new_value = float(new_value)
             setattr(mutated_config, field_name, new_value)
 
             # B. Handle Chromosome (structural list/tuple) mutation
-        elif gene_list and isinstance(current_value, (list, tuple)):
+        elif isinstance(gene, GeneList) and isinstance(current_value, (list, tuple)):
             mutable_list = list(current_value)
 
             # Add an element
-            if (
-                np.random.rand() < gene_list.add_prob
-                and len(mutable_list) < gene_list.max_len
-            ):
+            if np.random.rand() < gene.add_prob and len(mutable_list) < gene.max_len:
                 if mutable_list:
                     mutable_list.append(copy.deepcopy(np.random.choice(mutable_list)))
 
             # Remove an element
-            if (
-                np.random.rand() < gene_list.remove_prob
-                and len(mutable_list) > gene_list.min_len
-            ):
+            if np.random.rand() < gene.remove_prob and len(mutable_list) > gene.min_len:
                 idx_to_remove = np.random.randint(0, len(mutable_list))
                 del mutable_list[idx_to_remove]
 
             setattr(mutated_config, field_name, tuple(mutable_list))
 
+    for field_name in mutated_config.__class__.model_fields:
         # C. Recurse into nested models or lists of models
+        current_value = getattr(mutated_config, field_name)
         if isinstance(current_value, EvolvableConfig):
             setattr(mutated_config, field_name, mutate(current_value))
         elif isinstance(current_value, (list, tuple)):

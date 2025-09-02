@@ -19,7 +19,6 @@ def generate_mutations(
     print(f"Loading base robot configuration from: {config_path}")
     base_config_dict = load_config(config_path)
     base_robot_config = EvolvableRobotConfig(**base_config_dict)
-    print(base_robot_config)
 
     # Create the output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)

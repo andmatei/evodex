@@ -2,8 +2,8 @@ import os
 import argparse
 import numpy as np
 
-from evodex.evolution.core import apply_mutations
-from evodex.simulation.robot import RobotConfig
+from evodex.evolution.core import mutate
+from evodex.evolution.robot import EvolvableRobotConfig
 from experiments.utils import load_config, save_config
 
 
@@ -18,7 +18,8 @@ def generate_mutations(
 
     print(f"Loading base robot configuration from: {config_path}")
     base_config_dict = load_config(config_path)
-    base_robot_config = RobotConfig(**base_config_dict)
+    base_robot_config = EvolvableRobotConfig(**base_config_dict)
+    print(base_robot_config)
 
     # Create the output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -26,7 +27,7 @@ def generate_mutations(
 
     for i in range(num_mutations):
         # Always mutate from a clean copy of the original config
-        mutated_config = apply_mutations(base_robot_config)
+        mutated_config = mutate(base_robot_config)
 
         # Use zfill for zero-padded filenames (e.g., mutant_001.yaml) for better sorting
         output_filename = f"mutant_{str(i).zfill(3)}.yaml"

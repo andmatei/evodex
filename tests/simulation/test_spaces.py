@@ -1,7 +1,7 @@
 import gymnasium as gym
 import pytest
 
-from tests.simulation.utils import load_config
+from tests.utils import load_config
 from evodex.simulation import RobotHandEnv, Observation, Action
 
 

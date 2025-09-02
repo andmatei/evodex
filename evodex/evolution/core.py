@@ -66,23 +66,39 @@ def mutate(config: T) -> T:
     return mutated_config
 
 
-def _crossover_alleles(
-    tree_child: Node[T], tree_parent_a: Node[T], tree_parent_b: Node[T]
-) -> None:
-    pass
+def _crossover_alleles(child: Node[T], parent_a: Node[T], parent_b: Node[T]) -> Node[T]:
+    for field_name, gene in child.data._genes.items():
+        if isinstance(gene, Gene):
+            val_a = getattr(parent_a.data, field_name)
+            val_b = getattr(parent_b.data, field_name)
+            alpha = np.random.rand()
+            new_val = alpha * val_a + (1 - alpha) * val_b
+
+            if isinstance(val_a, int):
+                new_val = int(round(new_val))
+
+            setattr(child.data, field_name, new_val)
+
+    for i, child_node in enumerate(child.children):
+        if i < len(parent_a.children) and i < len(parent_b.children):
+            corresponding_node_a = parent_a.children[i]
+            corresponding_node_b = parent_b.children[i]
+            if (
+                type(child_node.data)
+                == type(corresponding_node_a.data)
+                == type(corresponding_node_b.data)
+            ):
+                _crossover_alleles(
+                    child_node, corresponding_node_a, corresponding_node_b
+                )
+
+    return child
 
 
-def _crossover_tree():
-    pass
-
-
-def crossover_tree(parent_a: T, parent_b: T, role: Optional[str] = None) -> T:
-    """Performs one-point subtree crossover o two trees"""
-    tree_a = config_to_tree(parent_a)
-    tree_b = config_to_tree(parent_b)
-
-    child_tree = copy.deepcopy(tree_a)
-    nodes_a = get_all_nodes(child_tree, role)
+def _crossover_tree(
+    tree_a: Node[T], tree_b: Node[T], role: Optional[str] = None
+) -> Node[T]:
+    nodes_a = get_all_nodes(tree_a, role)
     nodes_b = get_all_nodes(tree_b, role)
 
     node_to_replace: Node[T] = random.choice(nodes_a)
@@ -95,7 +111,7 @@ def crossover_tree(parent_a: T, parent_b: T, role: Optional[str] = None) -> T:
         subtree_to_insert: Node[T] = copy.deepcopy(random.choice(compatible_nodes_b))
 
         if node_to_replace.parent is None:
-            return tree_to_config(subtree_to_insert)
+            return subtree_to_insert
 
         parent_of_node = node_to_replace.parent
         for i, child in enumerate(parent_of_node.children):
@@ -103,5 +119,16 @@ def crossover_tree(parent_a: T, parent_b: T, role: Optional[str] = None) -> T:
                 parent_of_node.children[i] = subtree_to_insert
                 subtree_to_insert.parent = parent_of_node
                 break
+
+    return tree_a
+
+
+def crossover(parent_a: T, parent_b: T, role: Optional[str] = None) -> T:
+    """Performs one-point subtree crossover o two trees"""
+    tree_a = config_to_tree(parent_a)
+    tree_b = config_to_tree(parent_b)
+
+    child_tree = _crossover_tree(tree_a, tree_b, role)
+    child_tree = _crossover_alleles(child_tree, tree_a, tree_b)
 
     return tree_to_config(child_tree)

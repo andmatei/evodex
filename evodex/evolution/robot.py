@@ -9,35 +9,47 @@ from evodex.simulation.robot.config import (
     SegmentConfig,
 )
 
-from .types import EvolvableConfig, Gene, GeneList, Allele, AlleleList
+from .types import EvolvableConfig, Gene, GeneList
 
 
 class EvolvableBaseConfig(BaseConfig, EvolvableConfig):
-    width: float = Allele(mutation_std=1.0, min_val=10.0, max_val=50.0, ge=0.0)
-    height: float = Allele(mutation_std=2.0, min_val=20.0, max_val=150.0, ge=0.0)
+    _genes = {
+        "width": Gene(mutation_std=1.0, min_val=10.0, max_val=50.0),
+        "height": Gene(mutation_std=2.0, min_val=20.0, max_val=150.0),
+    }
 
 
 class EvolvableSegmentConfig(SegmentConfig, EvolvableConfig):
-    length: float = Allele(mutation_std=2.0, min_val=20.0, max_val=120.0, ge=0.0)
-    width: float = Allele(mutation_std=1.0, min_val=5.0, max_val=30.0, ge=0.0)
+    _genes = {
+        "length": Gene(mutation_std=2.0, min_val=20.0, max_val=120.0),
+        "width": Gene(mutation_std=1.0, min_val=5.0, max_val=30.0),
+    }
 
 
 class EvolvableFingerConfig(FingerConfig, EvolvableConfig):
-    segments: Tuple[EvolvableSegmentConfig, ...] = AlleleList(
-        min_len=1,
-        max_len=10,
-        structure=GeneList.Structure.CHAIN,
-        add_prob=0.1,
-        remove_prob=0.1,
-    )
+    segments: Tuple[EvolvableSegmentConfig, ...]
+
+    _genes = {
+        "segments": GeneList(
+            structure=GeneList.Structure.CHAIN,
+            min_len=1,
+            max_len=10,
+            add_prob=0.1,
+            remove_prob=0.1,
+        )
+    }
 
 
 class EvolvableRobotConfig(RobotConfig, EvolvableConfig):
     base: EvolvableBaseConfig
-    fingers: Tuple[EvolvableFingerConfig, ...] = AlleleList(
-        min_len=1,
-        max_len=5,
-        structure=GeneList.Structure.PARALLEL,
-        add_prob=0.1,
-        remove_prob=0.05,
-    )
+    fingers: Tuple[EvolvableFingerConfig, ...]
+
+    _genes = {
+        "fingers": GeneList(
+            structure=GeneList.Structure.PARALLEL,
+            min_len=1,
+            max_len=5,
+            add_prob=0.1,
+            remove_prob=0.05,
+        )
+    }

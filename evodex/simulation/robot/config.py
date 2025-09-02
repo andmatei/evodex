@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Optional, Tuple, List, Any
+from typing import Optional, Tuple, Any
 import numpy as np
 
 

@@ -1,3 +1,4 @@
+import math
 from pydantic import BaseModel, Field, model_validator, computed_field
 from typing import List, Tuple, Literal, Union, Optional
 from abc import ABC, abstractmethod
@@ -39,6 +40,7 @@ class ShapeType(str, Enum):
     CYLINDER = "cylinder"
     CAPSULE = "capsule"
 
+
 class ShapeConfig(BaseModel):
     type: ShapeType = Field(..., description="Type of the shape")
 
@@ -47,19 +49,24 @@ class ShapeConfig(BaseModel):
         pass
 
     @computed_field
+    @property
     def unit_inertia(self) -> Inertia:
         return self._calculate_unit_inertia()
 
+
 class BoxConfig(ShapeConfig):
     type: Literal[ShapeType.BOX] = ShapeType.BOX
-    size: Tuple[float, float, float] = Field(..., description="Dimensions of the box")
+    width: float = Field(..., description="Width of the box along the X-axis")
+    length: float = Field(..., description="Length of the box along the Y-axis")
+    depth: float = Field(..., description="Height of the box along the Z-axis")
 
     def _calculate_unit_inertia(self) -> Inertia:
-        x, y, z = self.size
+        x, y, z = self.width, self.length, self.depth
         ixx = (1/12) * (y**2 + z**2)
         iyy = (1/12) * (x**2 + z**2)
         izz = (1/12) * (x**2 + y**2)
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
+
 
 class CylinderConfig(ShapeConfig):
     type: Literal[ShapeType.CYLINDER] = ShapeType.CYLINDER
@@ -73,6 +80,7 @@ class CylinderConfig(ShapeConfig):
         izz = 0.5 * r**2
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
 
+
 class CapsuleConfig(ShapeConfig):
     type: Literal[ShapeType.CAPSULE] = ShapeType.CAPSULE
     radius: float = Field(..., description="Radius of the capsule")
@@ -85,6 +93,7 @@ class CapsuleConfig(ShapeConfig):
         izz = 0.5 * r**2
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
 
+
 class SphereConfig(ShapeConfig):
     type: Literal[ShapeType.SPHERE] = ShapeType.SPHERE
     radius: float = Field(..., description="Radius of the sphere")
@@ -93,6 +102,7 @@ class SphereConfig(ShapeConfig):
         r = self.radius
         i = (2/5) * r**2
         return Inertia(ixx=i, iyy=i, izz=i)
+
 
 AllShapeConfigs = Union[BoxConfig, SphereConfig, CylinderConfig, CapsuleConfig]
 
@@ -109,8 +119,10 @@ class LinkConfig(BaseModel):
     collision: AllShapeConfigs = Field(..., description="The collision geometry of the link.", discriminator="type")
 
     @computed_field
+    @property
     def inertia(self) -> Inertia:
-        return self.collision.unit_inertia() * self.mass
+        return self.collision.unit_inertia * self.mass
+
 
 class BaseConfig(LinkConfig):
     """Configuration for the robot's base (palm)."""
@@ -123,11 +135,26 @@ class BaseConfig(LinkConfig):
 # point on the base to its segments and fingertip.
 class FingerAttachmentConfig(BaseModel):
     angle: float = Field(..., description="Angle in radians around the Z-axis where the finger attaches to the base.")
+    radius: float = Field(..., description="The radial distance from the base center to the finger attachment point.")
+    z_offset: float = Field(default=0.0, description="The vertical offset (Z-axis) of the finger attachment point.")
+    yaw_offset: float = Field(default=0.0, description="The local rotation of the finger around its own axis in radians.")
+
+    @computed_field
+    @property
+    def origin(self) -> Optional[Tuple[float, float, float]]:
+        if self.radius is not None and self.z_offset is not None:
+            x = self.radius * math.cos(self.angle)
+            y = self.radius * math.sin(self.angle)
+            z = self.z_offset
+            return (x, y, z)
+        return None
+
 
 # TODO: Add segment override
 class FingerDefaultsConfig(BaseModel):
     angle_limit: Tuple[float, float] = Field(..., description="The min and max angle limits for the finger joints.")
     damping: float = Field(..., description="The damping factor for the finger joints.")
+
 
 class FingerConfig(BaseModel):
     defaults: FingerDefaultsConfig = Field(..., description="Default properties applied to all segments unless overridden.")

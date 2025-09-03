@@ -1,0 +1,510 @@
+<?xml version="1.0"?>
+<robot name="pydantic_robot">
+
+  <link name="base">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.4"/>
+      <inertia ixx="0.0004933333333333334" ixy="0" ixz="0"
+               iyy="0.00022666666666666668" iyz="0"
+               izz="0.0006933333333333333"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.08 0.08 0.02"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.08 0.12 0.02"/>
+      </geometry>
+    </collision>
+  </link>
+
+
+
+  <link name="f1_s1">
+    <inertial>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <mass value="0.06"/>
+      <inertia ixx="8.285e-06" iyy="8.285e-06" izz="4.32e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.012" length="0.035"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.012" length="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_base_to_f1_s1" type="revolute">
+    <parent link="base"/>
+    <child link="f1_s1"/>
+    <origin 
+      xyz="-0.024809445635299944 0.043410729172280636 0.01" 
+      rpy="0 0 2.96"
+    />
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.5" 
+      upper="1.2" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.2"/>
+  </joint>
+
+  <link name="f1_s2">
+    <inertial>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <mass value="0.05"/>
+      <inertia ixx="4.116666666666667e-06" iyy="4.116666666666667e-06" izz="3.025e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.011" length="0.025"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.011" length="0.025"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f1_s1_to_f1_s2" type="revolute">
+    <parent link="f1_s1"/>
+    <child link="f1_s2"/>
+    <origin xyz="0 0 0.035" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.5" 
+      upper="1.2" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.2"/>
+  </joint>
+
+
+  <link name="f2_s1">
+    <inertial>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <mass value="0.045"/>
+      <inertia ixx="1.2254999999999999e-05" iyy="1.2254999999999999e-05" izz="1.8224999999999997e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.055"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.055"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_base_to_f2_s1" type="revolute">
+    <parent link="base"/>
+    <child link="f2_s1"/>
+    <origin 
+      xyz="0.05083530666080496 0.031871171875253006 0.01" 
+      rpy="0 0 0.56"
+    />
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f2_s2">
+    <inertial>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <mass value="0.035"/>
+      <inertia ixx="4.2816666666666675e-06" iyy="4.2816666666666675e-06" izz="1.4175e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.035"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f2_s1_to_f2_s2" type="revolute">
+    <parent link="f2_s1"/>
+    <child link="f2_s2"/>
+    <origin xyz="0 0 0.055" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f2_s3">
+    <inertial>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <mass value="0.025"/>
+      <inertia ixx="1.7536458333333337e-06" iyy="1.7536458333333337e-06" izz="9.031250000000001e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.025"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.025"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f2_s2_to_f2_s3" type="revolute">
+    <parent link="f2_s2"/>
+    <child link="f2_s3"/>
+    <origin xyz="0 0 0.035" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+
+  <link name="f3_s1">
+    <inertial>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <mass value="0.05"/>
+      <inertia ixx="1.60125e-05" iyy="1.60125e-05" izz="2.0249999999999997e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.06"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.06"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_base_to_f3_s1" type="revolute">
+    <parent link="base"/>
+    <child link="f3_s1"/>
+    <origin 
+      xyz="0.059135086014573644 0.01015094094401976 0.01" 
+      rpy="0 0 0.17"
+    />
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f3_s2">
+    <inertial>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <mass value="0.04"/>
+      <inertia ixx="6.143333333333333e-06" iyy="6.143333333333333e-06" izz="1.6199999999999997e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.04"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.009" length="0.04"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f3_s1_to_f3_s2" type="revolute">
+    <parent link="f3_s1"/>
+    <child link="f3_s2"/>
+    <origin xyz="0 0 0.06" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f3_s3">
+    <inertial>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <mass value="0.025"/>
+      <inertia ixx="2.3265625000000002e-06" iyy="2.3265625000000002e-06" izz="9.031250000000001e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.03"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f3_s2_to_f3_s3" type="revolute">
+    <parent link="f3_s2"/>
+    <child link="f3_s3"/>
+    <origin xyz="0 0 0.04" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+
+  <link name="f4_s1">
+    <inertial>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <mass value="0.045"/>
+      <inertia ixx="1.2156562499999997e-05" iyy="1.2156562499999997e-05" izz="1.6256250000000002e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.055"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0275" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.055"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_base_to_f4_s1" type="revolute">
+    <parent link="base"/>
+    <child link="f4_s1"/>
+    <origin 
+      xyz="0.058803994670474494 -0.011920159847703672 0.01" 
+      rpy="0 0 -0.2"
+    />
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f4_s2">
+    <inertial>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <mass value="0.035"/>
+      <inertia ixx="4.205104166666667e-06" iyy="4.205104166666667e-06" izz="1.2643750000000003e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.035"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0175" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0085" length="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f4_s1_to_f4_s2" type="revolute">
+    <parent link="f4_s1"/>
+    <child link="f4_s2"/>
+    <origin xyz="0 0 0.055" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f4_s3">
+    <inertial>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <mass value="0.025"/>
+      <inertia ixx="1.7020833333333335e-06" iyy="1.7020833333333335e-06" izz="8e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.025"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.0125" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.025"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f4_s2_to_f4_s3" type="revolute">
+    <parent link="f4_s2"/>
+    <child link="f4_s3"/>
+    <origin xyz="0 0 0.035" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+
+  <link name="f5_s1">
+    <inertial>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <mass value="0.04"/>
+      <inertia ixx="8.973333333333334e-06" iyy="8.973333333333334e-06" izz="1.28e-06" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.05"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_base_to_f5_s1" type="revolute">
+    <parent link="base"/>
+    <child link="f5_s1"/>
+    <origin 
+      xyz="0.058529061652924 -0.028272759717229968 0.01" 
+      rpy="0 0 -0.45"
+    />
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f5_s2">
+    <inertial>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <mass value="0.03"/>
+      <inertia ixx="2.73e-06" iyy="2.73e-06" izz="9.6e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.03"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.015" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.008" length="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f5_s1_to_f5_s2" type="revolute">
+    <parent link="f5_s1"/>
+    <child link="f5_s2"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+  <link name="f5_s3">
+    <inertial>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <mass value="0.02"/>
+      <inertia ixx="9.479166666666667e-07" iyy="9.479166666666667e-07" izz="5.625e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0075" length="0.02"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0075" length="0.02"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f5_s2_to_f5_s3" type="revolute">
+    <parent link="f5_s2"/>
+    <child link="f5_s3"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="-0.3" 
+      upper="1.4" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="0.1"/>
+  </joint>
+
+
+</robot>

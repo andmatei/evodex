@@ -1,0 +1,96 @@
+{%- macro render_geometry(shape) -%}
+  {%- if shape.type == 'box' -%}
+  <box size="{{ shape.width }} {{ shape.length }} {{ shape.depth }}"/>
+  {%- elif shape.type == 'cylinder' -%}
+  <cylinder radius="{{ shape.radius }}" length="{{ shape.length }}"/>
+  {%- elif shape.type == 'sphere' -%}
+  <sphere radius="{{ shape.radius }}"/>
+  {%- elif shape.type == 'capsule' -%}
+  <capsule radius="{{ shape.radius }}" length="{{ shape.length }}"/>
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro finger_id(index) -%}
+f{{ index }}
+{%- endmacro -%}
+
+{%- macro segment_id(finger_id, index) -%}
+{{ finger_id }}_s{{ index }}
+{%- endmacro -%}
+
+<?xml version="1.0"?>
+<robot name="{{ config.name | default('pydantic_robot') }}">
+
+  <link name="base">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="{{ config.base.mass }}"/>
+      <inertia ixx="{{ config.base.inertia.ixx }}" ixy="0" ixz="0"
+               iyy="{{ config.base.inertia.iyy }}" iyz="0"
+               izz="{{ config.base.inertia.izz }}"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(config.base.visual) }}
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(config.base.collision) }}
+      </geometry>
+    </collision>
+  </link>
+
+
+  {% for finger in config.fingers %}
+  {% set finger_id = finger_id(loop.index) %}
+
+  {# --- Loop through all segments in the finger --- #}
+  {% for segment in finger.segments %}
+  <link name="{{ segment_id(finger_id, loop.index) }}">
+    <inertial>
+      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <mass value="{{ segment.mass }}"/>
+      <inertia ixx="{{ segment.inertia.ixx }}" iyy="{{ segment.inertia.iyy }}" izz="{{ segment.inertia.izz }}" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(segment.visual) }}
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(segment.collision) }}
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_{% if loop.first %}base{% else %}{{ segment_id(finger_id, loop.index - 1) }}{% endif %}_to_{{ segment_id(finger_id, loop.index) }}" type="revolute">
+    <parent link="{% if loop.first %}base{% else %}{{ segment_id(finger_id, loop.index - 1) }}{% endif %}"/>
+    <child link="{{ segment_id(finger_id, loop.index) }}"/>
+    {% if loop.first %}
+    <origin 
+      xyz="{{ finger.attachment.origin[0] }} {{ finger.attachment.origin[1] }} {{ finger.attachment.origin[2] }}" 
+      rpy="0 0 {{ finger.attachment.angle + finger.attachment.yaw_offset }}"
+    />
+    {% else %}
+    <origin xyz="0 0 {{ loop.previtem.visual.length }}" rpy="0 0 0"/>
+    {% endif %}
+    <axis xyz="0 1 0"/>
+    <limit 
+      lower="{{ finger.defaults.angle_limit[0] }}" 
+      upper="{{ finger.defaults.angle_limit[1] }}" 
+      effort="10" velocity="1.0"
+    />
+    <dynamics damping="{{ finger.defaults.damping }}"/>
+  </joint>
+
+  {# --- Update the parent link for the next iteration --- #}
+  {% endfor %}
+  {% endfor %}
+
+</robot>

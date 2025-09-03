@@ -3,15 +3,10 @@ name: "dexterous_hand_v1"
 base:
   name: "palm"
   mass: 0.4
-  visual:
+  geometry:
     type: "box"
     width: 0.08
     length: 0.08
-    depth: 0.02
-  collision:
-    type: "box"
-    width: 0.08
-    length: 0.12
     depth: 0.02
 
 fingers:
@@ -27,13 +22,11 @@ fingers:
     segments:
       - name: "metacarpal"
         mass: 0.06
-        visual: { type: "cylinder", radius: 0.012, length: 0.035 }
-        collision: { type: "cylinder", radius: 0.012, length: 0.035 }
+        geometry: { type: "cylinder", radius: 0.012, length: 0.035 }
       - name: "proximal"
         mass: 0.05
-        visual: { type: "cylinder", radius: 0.011, length: 0.025 }
-        collision: { type: "cylinder", radius: 0.011, length: 0.025 }
-
+        geometry: { type: "cylinder", radius: 0.011, length: 0.025 }
+        
   # Index
   - defaults:
       angle_limit: [-0.3, 1.4]
@@ -46,16 +39,13 @@ fingers:
     segments:
       - name: "proximal"
         mass: 0.045
-        visual: { type: "cylinder", radius: 0.009, length: 0.055 }
-        collision: { type: "cylinder", radius: 0.009, length: 0.055 }
+        geometry: { type: "cylinder", radius: 0.009, length: 0.055 }
       - name: "medial"
         mass: 0.035
-        visual: { type: "cylinder", radius: 0.009, length: 0.035 }
-        collision: { type: "cylinder", radius: 0.009, length: 0.035 }
+        geometry: { type: "cylinder", radius: 0.009, length: 0.035 }
       - name: "distal"
         mass: 0.025
-        visual: { type: "cylinder", radius: 0.0085, length: 0.025 }
-        collision: { type: "cylinder", radius: 0.0085, length: 0.025 }
+        geometry: { type: "cylinder", radius: 0.0085, length: 0.025 }
 
   # Middle
   - defaults:
@@ -69,16 +59,13 @@ fingers:
     segments:
       - name: "proximal"
         mass: 0.05
-        visual: { type: "cylinder", radius: 0.009, length: 0.06 }
-        collision: { type: "cylinder", radius: 0.009, length: 0.06 }
+        geometry: { type: "cylinder", radius: 0.009, length: 0.06 }
       - name: "medial"
         mass: 0.04
-        visual: { type: "cylinder", radius: 0.009, length: 0.04 }
-        collision: { type: "cylinder", radius: 0.009, length: 0.04 }
+        geometry: { type: "cylinder", radius: 0.009, length: 0.04 }
       - name: "distal"
         mass: 0.025
-        visual: { type: "cylinder", radius: 0.0085, length: 0.03 }
-        collision: { type: "cylinder", radius: 0.0085, length: 0.03 }
+        geometry: { type: "cylinder", radius: 0.0085, length: 0.03 }
 
   # Ring
   - defaults:
@@ -92,16 +79,13 @@ fingers:
     segments:
       - name: "proximal"
         mass: 0.045
-        visual: { type: "cylinder", radius: 0.0085, length: 0.055 }
-        collision: { type: "cylinder", radius: 0.0085, length: 0.055 }
+        geometry: { type: "cylinder", radius: 0.0085, length: 0.055 }
       - name: "medial"
         mass: 0.035
-        visual: { type: "cylinder", radius: 0.0085, length: 0.035 }
-        collision: { type: "cylinder", radius: 0.0085, length: 0.035 }
+        geometry: { type: "cylinder", radius: 0.0085, length: 0.035 }
       - name: "distal"
         mass: 0.025
-        visual: { type: "cylinder", radius: 0.008, length: 0.025 }
-        collision: { type: "cylinder", radius: 0.008, length: 0.025 }
+        geometry: { type: "cylinder", radius: 0.008, length: 0.025 }
 
   # Little
   - defaults:
@@ -115,13 +99,10 @@ fingers:
     segments:
       - name: "proximal"
         mass: 0.04
-        visual: { type: "cylinder", radius: 0.008, length: 0.05 }
-        collision: { type: "cylinder", radius: 0.008, length: 0.05 }
+        geometry: { type: "cylinder", radius: 0.008, length: 0.05 }
       - name: "medial"
         mass: 0.03
-        visual: { type: "cylinder", radius: 0.008, length: 0.03 }
-        collision: { type: "cylinder", radius: 0.008, length: 0.03 }
+        geometry: { type: "cylinder", radius: 0.008, length: 0.03 }
       - name: "distal"
         mass: 0.02
-        visual: { type: "cylinder", radius: 0.0075, length: 0.02 }
-        collision: { type: "cylinder", radius: 0.0075, length: 0.02 }
+        geometry: { type: "cylinder", radius: 0.0075, length: 0.02 }

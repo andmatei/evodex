@@ -1,60 +1,175 @@
-<?xml version="1.0"?>
-<robot name="Robot">
+{# =================================================================== #}
+{#      Jinja2 Template for Generating a Gripper URDF File           #}
+{# =================================================================== #}
+{#                                                                     #}
+{# This template takes a dictionary parsed from a YAML configuration   #}
+{# and generates a complete URDF file.                                 #}
+{#                                                                     #}
+{# Expected pre-processing in the Python script before rendering:      #}
+{# - All angles (`attachment.angle_deg`) should be converted to        #}
+{#   radians and stored, e.g., in `attachment.angle_rad`.              #}
+{# - Inertia tensors for each link should be pre-calculated and        #}
+{#   added to the link's dictionary, e.g., `link.inertia`.             #}
+{#                                                                     #}
+{# URDF Conventions used in this template:                             #}
+{# - A link's geometry extends along its local +X axis.                #}
+{# - Joints for finger curling rotate around their local +Y axis.      #}
+{# ------------------------------------------------------------------- #}
 
-  <!-- Base Link -->
+{# --- MACROS for reusable XML blocks --- #}
+
+{% macro link_inertial(link) -%}
+<inertial>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <mass value="{{ link.mass }}"/>
+  {# Inertia tensor is expected to be pre-calculated in Python #}
+  <inertia ixx="{{ link.inertia.ixx }}" ixy="{{ link.inertia.ixy }}" ixz="{{ link.inertia.ixz }}"
+           iyy="{{ link.inertia.iyy }}" iyz="{{ link.inertia.iyz }}"
+           izz="{{ link.inertia.izz }}"/>
+</inertial>
+{%- endmacro %}
+
+{% macro link_geometry(geom) -%}
+{% if geom.type == 'cylinder' %}
+<geometry>
+  <cylinder radius="{{ geom.radius }}" length="{{ geom.depth }}"/>
+</geometry>
+{% elif geom.type == 'capsule' %}
+<geometry>
+  {# URDF capsules are aligned with Z-axis, so we rotate to align with X-axis #}
+  <capsule radius="{{ geom.radius }}" length="{{ geom.length }}"/>
+</geometry>
+{% elif geom.type == 'sphere' %}
+<geometry>
+  <sphere radius="{{ geom.radius }}"/>
+</geometry>
+{% elif geom.type == 'box' %}
+<geometry>
+  <box size="{{ geom.size[0] }} {{ geom.size[1] }} {{ geom.size[2] }}"/>
+</geometry>
+{% endif %}
+{%- endmacro %}
+
+{% macro link_visual(link) -%}
+<visual>
+  {# The origin for capsules needs to be rotated to align with the X-axis #}
+  <origin xyz="0 0 0" rpy="{{ '0 1.570796 0' if link.visual.type == 'capsule' else '0 0 0' }}"/>
+  {{ link_geometry(link.visual) }}
+  <material name="light_blue"/>
+</visual>
+{%- endmacro %}
+
+{% macro link_collision(link) -%}
+<collision>
+  {# The origin for capsules needs to be rotated to align with the X-axis #}
+  <origin xyz="0 0 0" rpy="{{ '0 1.570796 0' if link.collision.type == 'capsule' else '0 0 0' }}"/>
+  {{ link_geometry(link.collision) }}
+</collision>
+{%- endmacro %}
+
+
+{# --- MAIN TEMPLATE --- #}
+<?xml version="1.0"?>
+<robot name="Configurable3DGripper">
+
+  {# --- A static world link for the visualizer to anchor to --- #}
+  <link name="world"/>
+
+  {# --- Globally Defined Materials --- #}
+  <material name="green">
+    <color rgba="0.2 0.8 0.2 1.0"/>
+  </material>
+  <material name="light_blue">
+    <color rgba="0.6 0.8 1.0 1.0"/>
+  </material>
+
+  {# --- Joint to fix the base to the world --- #}
+  <joint name="world_to_base_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base"/>
+    <origin xyz="0 0 0.5" rpy="0 0 0"/>
+  </joint>
+
+  {# =============================================================== #}
+  {#                             BASE LINK                           #}
+  {# =============================================================== #}
   <link name="base">
-    <inertial>
-      <mass value="{{ config.base.mass }}"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
-    </inertial>
-    <collision>
-      <geometry>
-        <box size="{{ config.base.width / 100 }} {{ config.base.height / 100 }} 0.1"/>
-      </geometry>
-    </collision>
+    {{ link_inertial(robot.base) }}
     <visual>
-      <geometry>
-        <box size="{{ config.base.width / 100 }} {{ config.base.height / 100 }} 0.1"/>
-      </geometry>
+      {# URDF cylinders are aligned with Z-axis, which is correct for our palm depth #}
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      {{ link_geometry(robot.base.visual) }}
+      <material name="green"/>
     </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      {{ link_geometry(robot.base.collision) }}
+    </collision>
   </link>
 
-  <!-- Loop through each finger to generate its links and joints -->
-  {% for finger in config.fingers %}
-    {% set parent_link = 'base' %}
-    {% for segment in finger.segments %}
-      {% set link_name = 'finger_' ~ loop.parent.index ~ '_segment_' ~ loop.index0 %}
-      {% set joint_name = 'joint_' ~ loop.parent.index ~ '_' ~ loop.index0 %}
+  {# =============================================================== #}
+  {#                         FINGERS AND JOINTS                      #}
+  {# =============================================================== #}
+  {% for finger in robot.fingers %}
+    {# --- Set up loop variables --- #}
+    {% set parent_link_name = 'base' %}
+    {# Combine segments and the optional fingertip into one list to iterate over #}
+    {% set all_parts = finger.segments + ([finger.fingertip] if finger.fingertip else []) %}
 
-      <!-- Segment Link -->
-      <link name="{{ link_name }}">
-        <inertial>
-          <mass value="{{ segment.mass }}"/>
-          <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1" />
-        </inertial>
-        <collision>
-          <geometry>
-            <box size="{{ segment.width / 100 }} {{ segment.length / 100 }} 0.1"/>
-          </geometry>
-        </collision>
-        <visual>
-          <geometry>
-            <box size="{{ segment.width / 100 }} {{ segment.length / 100 }} 0.1"/>
-          </geometry>
-        </visual>
+    {% for part in all_parts %}
+      {% set part_name = finger.name + '_' + part.name %}
+      {% set joint_name = 'joint_' + parent_link_name + '_to_' + part_name %}
+
+      {# ------------------ LINK DEFINITION (FIX: Moved before joint) ------------------ #}
+      <link name="{{ part_name }}">
+        {{ link_inertial(part) }}
+        {{ link_visual(part) }}
+        {{ link_collision(part) }}
       </link>
 
-      <!-- Revolute Joint -->
+      {# ----------------- JOINT DEFINITION ----------------- #}
       <joint name="{{ joint_name }}" type="revolute">
-        <parent link="{{ parent_link }}"/>
-        <child link="{{ link_name }}"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
-        <limit lower="{{ segment.joint_angle_limit[0] }}" upper="{{ segment.joint_angle_limit[1] }}" effort="100" velocity="10"/>
+        <parent link="{{ parent_link_name }}"/>
+        <child link="{{ part_name }}"/>
+        
+        {# First part attaches to the base at the specified angle and radius #}
+        {% if loop.first %}
+        {% set x = finger.attachment.radius * cos(finger.attachment.angle_rad) %}
+        {% set y = finger.attachment.radius * sin(finger.attachment.angle_rad) %}
+        <origin xyz="{{ x }} {{ y }} 0" rpy="0 0 {{ finger.attachment.angle_rad }}"/>
+        {% else %}
+        {# Subsequent parts attach to the tip of the previous part #}
+        {% set prev_part = all_parts[loop.index0 - 1] %}
+        <origin xyz="{{ prev_part.visual.length }} 0 0" rpy="0 0 0"/>
+        {% endif %}
+        
+        <axis xyz="0 1 0"/> {# Curl around the Y-axis #}
+        <limit lower="{{ finger.defaults.joint_angle_limit[0] }}" 
+               upper="{{ finger.defaults.joint_angle_limit[1] }}" 
+               effort="100" velocity="10"/>
+        {# The <dynamics> tag can cause issues in simple visualizers. #}
+        {# <dynamics damping="{{ finger.defaults.motor_damping }}" friction="0.1"/> #}
       </joint>
 
-      {% set parent_link = link_name %}
+      {# ------------------ TRANSMISSION ------------------ #}
+      {# The <transmission> tag is for simulation and can be ignored for visualization. #}
+      {#
+      <transmission name="tran_{{ part_name }}">
+          <type>transmission_interface/SimpleTransmission</type>
+          <joint name="{{ joint_name }}">
+              <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+          </joint>
+          <actuator name="motor_{{ part_name }}">
+              <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+              <mechanicalReduction>1</mechanicalReduction>
+          </actuator>
+      </transmission>
+      #}
+
+      {# --- Update parent for next loop iteration --- #}
+      {% set parent_link_name = part_name %}
     {% endfor %}
   {% endfor %}
 
 </robot>
+

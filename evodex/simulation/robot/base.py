@@ -21,8 +21,8 @@ class Base:
             mass=self.config.mass, moment=moment, body_type=pymunk.Body.KINEMATIC
         )
 
-        self.body.position = (0, 0)
-        self.body.velocity = (0, 0)
+        self.position = (0, 0)
+        self.velocity = (0, 0)
         self.body.angular_velocity = 0
         self.shape = pymunk.Poly.create_box(
             self.body, (self.config.width, self.config.height)
@@ -50,7 +50,7 @@ class Base:
 
     @position.setter
     def position(self, pos: Tuple[float, float]) -> None:
-        self.body.position = pos
+        self.body.position = pymunk.Vec2d(pos[0], pos[1])
 
     def set_finger_count(self, num_fingers):
         self.finger_attachment_points_local = []

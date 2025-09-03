@@ -48,7 +48,7 @@ class GeometryConfig(BaseModel, ABC):
     def _calculate_unit_inertia(self) -> Inertia:
         pass
 
-    @computed_field
+    @computed_field # type: ignore
     @property
     def unit_inertia(self) -> Inertia:
         return self._calculate_unit_inertia()
@@ -117,7 +117,7 @@ class LinkConfig(BaseModel):
     mass: float = Field(..., gt=0, description="The mass of the link in kilograms.")
     geometry: AllGeometryConfigs = Field(..., description="The geometry of the link.", discriminator="type")
     
-    @computed_field
+    @computed_field # type: ignore
     @property
     def inertia(self) -> Inertia:
         return self.geometry.unit_inertia * self.mass
@@ -138,7 +138,7 @@ class FingerAttachmentConfig(BaseModel):
     z_offset: float = Field(default=0.0, description="The vertical offset (Z-axis) of the finger attachment point.")
     yaw_offset: float = Field(default=0.0, description="The local rotation of the finger around its own axis in radians.")
 
-    @computed_field
+    @computed_field # type: ignore
     @property
     def origin(self) -> Optional[Tuple[float, float, float]]:
         if self.radius is not None and self.z_offset is not None:

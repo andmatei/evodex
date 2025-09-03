@@ -1,0 +1,127 @@
+name: "dexterous_hand_v1"
+
+base:
+  name: "palm"
+  mass: 0.4
+  visual:
+    type: "box"
+    width: 0.08
+    length: 0.08
+    depth: 0.02
+  collision:
+    type: "box"
+    width: 0.08
+    length: 0.12
+    depth: 0.02
+
+fingers:
+  # Thumb
+  - defaults: 
+      angle_limit: [-0.5, 1.2]
+      damping: 0.2
+    attachment:
+      angle: 2.09         # -120°, opposition
+      radius: 0.05
+      z_offset: 0.01
+      yaw_offset: 0.87     # ~50° inward
+    segments:
+      - name: "metacarpal"
+        mass: 0.06
+        visual: { type: "cylinder", radius: 0.012, length: 0.035 }
+        collision: { type: "cylinder", radius: 0.012, length: 0.035 }
+      - name: "proximal"
+        mass: 0.05
+        visual: { type: "cylinder", radius: 0.011, length: 0.025 }
+        collision: { type: "cylinder", radius: 0.011, length: 0.025 }
+
+  # Index
+  - defaults:
+      angle_limit: [-0.3, 1.4]
+      damping: 0.1
+    attachment:
+      angle: 0.56
+      radius: 0.06
+      z_offset: 0.01
+      yaw_offset: 0.0
+    segments:
+      - name: "proximal"
+        mass: 0.045
+        visual: { type: "cylinder", radius: 0.009, length: 0.055 }
+        collision: { type: "cylinder", radius: 0.009, length: 0.055 }
+      - name: "medial"
+        mass: 0.035
+        visual: { type: "cylinder", radius: 0.009, length: 0.035 }
+        collision: { type: "cylinder", radius: 0.009, length: 0.035 }
+      - name: "distal"
+        mass: 0.025
+        visual: { type: "cylinder", radius: 0.0085, length: 0.025 }
+        collision: { type: "cylinder", radius: 0.0085, length: 0.025 }
+
+  # Middle
+  - defaults:
+      angle_limit: [-0.3, 1.4]
+      damping: 0.1
+    attachment:
+      angle: 0.17
+      radius: 0.06
+      z_offset: 0.01
+      yaw_offset: 0.0
+    segments:
+      - name: "proximal"
+        mass: 0.05
+        visual: { type: "cylinder", radius: 0.009, length: 0.06 }
+        collision: { type: "cylinder", radius: 0.009, length: 0.06 }
+      - name: "medial"
+        mass: 0.04
+        visual: { type: "cylinder", radius: 0.009, length: 0.04 }
+        collision: { type: "cylinder", radius: 0.009, length: 0.04 }
+      - name: "distal"
+        mass: 0.025
+        visual: { type: "cylinder", radius: 0.0085, length: 0.03 }
+        collision: { type: "cylinder", radius: 0.0085, length: 0.03 }
+
+  # Ring
+  - defaults:
+      angle_limit: [-0.3, 1.4]
+      damping: 0.1
+    attachment:
+      angle: -0.20
+      radius: 0.06
+      z_offset: 0.01
+      yaw_offset: 0.0
+    segments:
+      - name: "proximal"
+        mass: 0.045
+        visual: { type: "cylinder", radius: 0.0085, length: 0.055 }
+        collision: { type: "cylinder", radius: 0.0085, length: 0.055 }
+      - name: "medial"
+        mass: 0.035
+        visual: { type: "cylinder", radius: 0.0085, length: 0.035 }
+        collision: { type: "cylinder", radius: 0.0085, length: 0.035 }
+      - name: "distal"
+        mass: 0.025
+        visual: { type: "cylinder", radius: 0.008, length: 0.025 }
+        collision: { type: "cylinder", radius: 0.008, length: 0.025 }
+
+  # Little
+  - defaults:
+      angle_limit: [-0.3, 1.4]
+      damping: 0.1
+    attachment:
+      angle: -0.45    # spread outward more
+      radius: 0.065
+      z_offset: 0.01
+      yaw_offset: 0.0
+    segments:
+      - name: "proximal"
+        mass: 0.04
+        visual: { type: "cylinder", radius: 0.008, length: 0.05 }
+        collision: { type: "cylinder", radius: 0.008, length: 0.05 }
+      - name: "medial"
+        mass: 0.03
+        visual: { type: "cylinder", radius: 0.008, length: 0.03 }
+        collision: { type: "cylinder", radius: 0.008, length: 0.03 }
+      - name: "distal"
+        mass: 0.02
+        visual: { type: "cylinder", radius: 0.0075, length: 0.02 }
+        collision: { type: "cylinder", radius: 0.0075, length: 0.02 }

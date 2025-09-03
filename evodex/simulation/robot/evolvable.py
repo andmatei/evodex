@@ -2,14 +2,14 @@ from typing import Annotated, Tuple
 
 from pydantic import Field
 
-from evodex.simulation.robot.config import (
+from .config import (
     RobotConfig,
     BaseConfig,
     FingerConfig,
     SegmentConfig,
 )
 
-from .types import EvolvableConfig, Gene, GeneList
+from evodex.evolution.types import EvolvableConfig, Gene, GeneList
 
 
 class EvolvableBaseConfig(BaseConfig, EvolvableConfig):
@@ -24,7 +24,7 @@ class EvolvableSegmentConfig(SegmentConfig, EvolvableConfig):
         "length": Gene(mutation_std=2.0, min_val=20.0, max_val=120.0),
         "width": Gene(mutation_std=1.0, min_val=5.0, max_val=30.0),
     }
-
+    
 
 class EvolvableFingerConfig(FingerConfig, EvolvableConfig):
     segments: Tuple[EvolvableSegmentConfig, ...]

@@ -32,13 +32,13 @@ f{{ index }}
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        {{ render_geometry(config.base.visual) }}
+        {{ render_geometry(config.base.geometry) }}
       </geometry>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        {{ render_geometry(config.base.collision) }}
+        {{ render_geometry(config.base.geometry) }}
       </geometry>
     </collision>
   </link>

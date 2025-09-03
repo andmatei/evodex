@@ -2,7 +2,7 @@ import pytest
 
 # Import the functions and models to be tested
 from evodex.evolution.tree import config_to_tree, tree_to_config
-from evodex.evolution.robot import (
+from evodex.simulation.robot.evolvable import (
     EvolvableRobotConfig,
     EvolvableBaseConfig,
     EvolvableFingerConfig,

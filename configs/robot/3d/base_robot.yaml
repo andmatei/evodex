@@ -1,0 +1,117 @@
+# ===================================================================
+#           3D Floating Gripper Morphology Configuration
+# ===================================================================
+#
+# This file describes the physical structure of a 3D robotic gripper.
+# It is designed to be parsed by a script that generates a URDF/USD asset
+# for use in a 3D physics simulator like Isaac Lab.
+#
+# Coordinate System Convention (for attachments):
+#   - The base (palm) is centered at (0, 0, 0).
+#   - +X is considered "forward" from the base.
+#   - +Z is "up".
+#   - Attachment angles are in the XY plane, starting from the +X axis
+#     and rotating counter-clockwise.
+#
+# Units:
+#   - All lengths, radii, and positions are in meters (m).
+#   - All masses are in kilograms (kg).
+#   - Joint angle limits are in radians.
+#   - Attachment angles are in degrees for human readability.
+#
+# The base of the gripper, acting as the palm.
+# The 'floating' nature is defined by how it's loaded in the simulator,
+# not by a flag here. By default, it will be a free-floating articulation.
+base:      # Shape of the base. Can be 'cylinder', 'sphere', or 'box'.
+  mass: 0.5           # Mass in kg.
+  # Dimensions for the cylinder type.
+  visual:
+    type: cylinder
+    radius: 0.05      # Radius of the palm in meters.
+    depth: 0.02       # Thickness of the palm in meters.
+  collision:
+    type: cylinder
+    radius: 0.05
+    depth: 0.02
+
+# A list of all fingers attached to the base.
+fingers:
+  # --- Finger 1: Standard Forward-Facing Finger ---
+  - name: finger_1
+    # Defines where and how this finger connects to the base.
+    attachment:
+      radius: 0.04  # Distance from the center of the base to attach, in meters.
+      angle_deg: 0  # Angle in degrees on the XY plane (0 is straight ahead along +X).
+
+    # Default properties for all joints and segments in this finger.
+    # These can be overridden in the 'segments' list below.
+    defaults:
+      motor_stiffness: 10.0
+      motor_damping: 0.5
+      joint_angle_limit: [-1.57, 1.57] # [-pi/2, pi/2] radians.
+
+    # List of segments building the finger, from base to tip.
+    segments:
+      - name: proximal
+        mass: 0.05
+        visual:
+          type: capsule # 'capsule' is great for finger physics. 'box' is also an option.
+          length: 0.05
+          radius: 0.01
+        collision:
+          type: capsule
+          length: 0.05
+          radius: 0.01
+
+      - name: medial
+        mass: 0.03
+        visual:
+          type: capsule
+          length: 0.04
+          radius: 0.008
+        collision:
+          type: capsule
+          length: 0.04
+          radius: 0.008
+
+  # --- Finger 2: Angled Finger ---
+  - name: finger_2
+    attachment:
+      radius: 0.04
+      angle_deg: 60 # Angled 60 degrees from the forward direction.
+
+    defaults:
+      motor_stiffness: 10.0
+      motor_damping: 0.5
+      joint_angle_limit: [-1.57, 1.57]
+
+    segments:
+      - name: proximal
+        mass: 0.05
+        visual: { type: capsule, length: 0.05, radius: 0.01 }
+        collision: { type: capsule, length: 0.05, radius: 0.01 }
+      - name: medial
+        mass: 0.03
+        visual: { type: capsule, length: 0.04, radius: 0.008 }
+        collision: { type: capsule, length: 0.04, radius: 0.008 }
+
+  # --- Finger 3: Opposable Thumb ---
+  - name: thumb
+    attachment:
+      radius: 0.035
+      angle_deg: 150 # Positioned like an opposable thumb.
+
+    defaults:
+      motor_stiffness: 12.0 # Slightly stronger motor
+      motor_damping: 0.6
+      joint_angle_limit: [-1.2, 1.2]
+
+    segments:
+      - name: proximal_thumb
+        mass: 0.06
+        visual: { type: capsule, length: 0.035, radius: 0.012 }
+        collision: { type: capsule, length: 0.035, radius: 0.012 }
+      - name: distal_thumb
+        mass: 0.04
+        visual: { type: capsule, length: 0.03, radius: 0.011 }
+        collision: { type: capsule, length: 0.03, radius: 0.011 }

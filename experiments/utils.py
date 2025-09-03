@@ -3,7 +3,7 @@ import gymnasium as gym
 import numpy as np
 
 from gymnasium.wrappers import RescaleAction
-from typing import Optional
+from typing import Optional, Any
 from enum import Enum
 
 from evodex.simulation import RobotHandEnv, BaseMaskWrapper
@@ -14,6 +14,23 @@ class EnvMask(Enum):
     NONE = 0
     BASE = 1
     FINGERS = 2
+
+
+def clean_data(d: Any) -> Any:
+    """
+    Recursively remove empty lists and dictionaries from a nested dictionary.
+
+    Args:
+        d (dict): The input dictionary to clean.
+
+    Returns:
+        dict: The cleaned dictionary.
+    """
+    if isinstance(d, dict):
+        return {k: clean_data(v) for k, v in d.items()}
+    if isinstance(d, tuple) or isinstance(d, list):
+        return [clean_data(v) for v in d]
+    return d
 
 
 def load_config(path: str) -> dict:
@@ -29,6 +46,19 @@ def load_config(path: str) -> dict:
     with open(path, "r") as file:
         config = yaml.safe_load(file)
     return config
+
+
+def save_config(config: dict, path: str) -> None:
+    """
+    Save configuration to a YAML file.
+
+    Args:
+        path (str): Path to the YAML configuration file.
+        config (dict): Configuration dictionary to save.
+    """
+    clean_config = clean_data(config)
+    with open(path, "w") as file:
+        yaml.dump(clean_config, file)
 
 
 def make_env(

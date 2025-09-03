@@ -72,7 +72,7 @@ class FingerConfig(BaseModel):
         for segment in segments:
             for key, value in default_values.items():
                 segment.setdefault(key, value)
-
+                
         return data
 
     def __len__(self) -> int:

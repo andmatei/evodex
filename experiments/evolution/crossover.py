@@ -4,7 +4,7 @@ import numpy as np
 
 # Assuming your core and utils are in the correct paths
 from evodex.evolution.core import crossover
-from evodex.evolution.robot import EvolvableRobotConfig
+from evodex.simulation.robot.evolvable import EvolvableRobotConfig
 from experiments.utils import load_config, save_config
 
 

@@ -2,11 +2,11 @@ import pytest
 
 # Import the functions and models to be tested
 from evodex.evolution.tree import config_to_tree, tree_to_config
-from evodex.simulation.robot.evolvable import (
+from evodex.simulation.isaac.robot.evolvable import (
     EvolvableRobotConfig,
     EvolvableBaseConfig,
     EvolvableFingerConfig,
-    EvolvableSegmentConfig,
+    EvolvableLinkConfig,
 )
 
 from tests.utils import load_config
@@ -48,12 +48,12 @@ def test_config_to_tree_structure(sample_robot_config):
     finger_0 = finger_nodes[0]
     assert len(finger_0.children) == 1
     segment_0_0 = finger_0.children[0]
-    assert isinstance(segment_0_0.data, EvolvableSegmentConfig)
+    assert isinstance(segment_0_0.data, EvolvableLinkConfig)
     assert segment_0_0.data.length == 100.0
 
     assert len(segment_0_0.children) == 1
     segment_0_1 = segment_0_0.children[0]
-    assert isinstance(segment_0_1.data, EvolvableSegmentConfig)
+    assert isinstance(segment_0_1.data, EvolvableLinkConfig)
     assert segment_0_1.data.length == 80.0
     assert segment_0_1.parent is segment_0_0
     assert len(segment_0_1.children) == 0  # End of the chain
@@ -62,18 +62,18 @@ def test_config_to_tree_structure(sample_robot_config):
     finger_1 = finger_nodes[1]
     assert len(finger_1.children) == 1
     segment_1_0 = finger_1.children[0]
-    assert isinstance(segment_1_0.data, EvolvableSegmentConfig)
+    assert isinstance(segment_1_0.data, EvolvableLinkConfig)
     assert segment_1_0.data.length == 100.0
 
     assert len(segment_1_0.children) == 1
     segment_1_1 = segment_1_0.children[0]
-    assert isinstance(segment_1_1.data, EvolvableSegmentConfig)
+    assert isinstance(segment_1_1.data, EvolvableLinkConfig)
     assert segment_1_1.data.length == 80.0
     assert segment_1_1.parent is segment_1_0
 
     assert len(segment_1_1.children) == 1
     segment_1_2 = segment_1_1.children[0]
-    assert isinstance(segment_1_2.data, EvolvableSegmentConfig)
+    assert isinstance(segment_1_2.data, EvolvableLinkConfig)
     assert segment_1_2.data.length == 60.0
     assert segment_1_2.parent is segment_1_1
     assert len(segment_1_2.children) == 0  # End of the chain

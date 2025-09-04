@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 
 from evodex.evolution.core import mutate
-from evodex.simulation.robot.evolvable import EvolvableRobotConfig
+from evodex.simulation.isaac.robot.evolvable import EvolvableRobotConfig
 from experiments.utils import load_config, save_config
 
 

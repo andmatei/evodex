@@ -1,6 +1,0 @@
-name: move_to_target
-screen:
-  width: 640
-  height: 480
-robot:
-  position: [100, 100]

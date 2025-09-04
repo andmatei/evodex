@@ -4,18 +4,18 @@ base:
   geometry:
     type: box
     width: 0.1
-    length: 0.2
+    length: 0.1
     depth: 0.02
 
 fingers:
   - defaults:
-      angle_limit: [0.0, 1.57]
+      angle_limit: [-0.7, 1.57]
       damping: 0.1
     attachment:
       angle_offset: 0.0
       radius: 0.05
       z_offset: 0.0
-      yaw_offset: 0.0
+      yaw_offset: 3.1415
     segments:
       - name: "finger1_proximal"
         mass: 0.05
@@ -43,13 +43,13 @@ fingers:
         radius: 0.008
 
   - defaults:
-      angle_limit: [0.0, 1.57]
+      angle_limit: [-0.7, 1.57]
       damping: 0.1
     attachment:
       angle_offset: 1.57
       radius: 0.05
       z_offset: 0.0
-      yaw_offset: 0.0
+      yaw_offset: 3.1415
     segments:
       - name: "finger2_proximal"
         mass: 0.05
@@ -77,13 +77,13 @@ fingers:
         radius: 0.008
 
   - defaults:
-      angle_limit: [0.0, 1.57]
+      angle_limit: [-0.7, 1.57]
       damping: 0.1
     attachment:
       angle_offset: 3.14
       radius: 0.05
       z_offset: 0.0
-      yaw_offset: 0.0
+      yaw_offset: 3.1415
     segments:
       - name: "finger3_proximal"
         mass: 0.05
@@ -111,13 +111,13 @@ fingers:
         radius: 0.008
 
   - defaults:
-      angle_limit: [0.0, 1.57]
+      angle_limit: [-0.7, 1.57]
       damping: 0.1
     attachment:
       angle_offset: 4.71
       radius: 0.05
       z_offset: 0.0
-      yaw_offset: 0.0
+      yaw_offset: 3.1415
     segments:
       - name: "finger4_proximal"
         mass: 0.05

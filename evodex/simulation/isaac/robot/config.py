@@ -133,10 +133,12 @@ class BaseConfig(LinkConfig):
 # Defines the structure of a complete finger, from its attachment
 # point on the base to its segments and fingertip.
 class FingerAttachmentConfig(BaseModel):
-    angle: float = Field(..., description="Angle in radians around the Z-axis where the finger attaches to the base.")
+    angle_offset: float = Field(..., description="Angle in radians around the Z-axis where the finger attaches to the base.")
     radius: float = Field(..., description="The radial distance from the base center to the finger attachment point.")
     z_offset: float = Field(default=0.0, description="The vertical offset (Z-axis) of the finger attachment point.")
     yaw_offset: float = Field(default=0.0, description="The local rotation of the finger around its own axis in radians.")
+
+    angle: float = Field(0.0, exclude=True)
 
     @computed_field # type: ignore
     @property
@@ -149,7 +151,6 @@ class FingerAttachmentConfig(BaseModel):
         return None
 
 
-# TODO: Add segment override
 class FingerDefaultsConfig(BaseModel):
     angle_limit: Tuple[float, float] = Field(..., description="The min and max angle limits for the finger joints.")
     damping: float = Field(..., description="The damping factor for the finger joints.")
@@ -176,3 +177,12 @@ class FingerConfig(BaseModel):
 class RobotConfig(BaseModel):
     base: BaseConfig
     fingers: Tuple[FingerConfig, ...]
+
+    @model_validator(mode="after")
+    def calculate_finger_angles(self) -> "RobotConfig":
+        last_angle = 0.0
+        for finger in self.fingers:
+            current_angle = last_angle + finger.attachment.angle_offset
+            finger.attachment.angle = current_angle
+            last_angle = current_angle
+        return self

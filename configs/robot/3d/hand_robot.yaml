@@ -11,14 +11,15 @@ base:
 
 fingers:
   # Thumb
+  # The first finger's offset is its absolute angle.
   - defaults: 
       angle_limit: [-0.5, 1.2]
       damping: 0.2
     attachment:
-      angle: 2.09         # -120°, opposition
+      angle_offset: 2.09      # Absolute angle: 2.09
       radius: 0.05
       z_offset: 0.01
-      yaw_offset: 0.87     # ~50° inward
+      yaw_offset: 0.87
     segments:
       - name: "metacarpal"
         mass: 0.06
@@ -28,11 +29,12 @@ fingers:
         geometry: { type: "cylinder", radius: 0.011, length: 0.025 }
         
   # Index
+  # Offset = 0.56 (current) - 2.09 (previous) = -1.53
   - defaults:
       angle_limit: [-0.3, 1.4]
       damping: 0.1
     attachment:
-      angle: 0.56
+      angle_offset: -1.53     # Absolute angle: 0.56
       radius: 0.06
       z_offset: 0.01
       yaw_offset: 0.0
@@ -48,11 +50,12 @@ fingers:
         geometry: { type: "cylinder", radius: 0.0085, length: 0.025 }
 
   # Middle
+  # Offset = 0.17 (current) - 0.56 (previous) = -0.39
   - defaults:
       angle_limit: [-0.3, 1.4]
       damping: 0.1
     attachment:
-      angle: 0.17
+      angle_offset: -0.39     # Absolute angle: 0.17
       radius: 0.06
       z_offset: 0.01
       yaw_offset: 0.0
@@ -68,11 +71,12 @@ fingers:
         geometry: { type: "cylinder", radius: 0.0085, length: 0.03 }
 
   # Ring
+  # Offset = -0.20 (current) - 0.17 (previous) = -0.37
   - defaults:
       angle_limit: [-0.3, 1.4]
       damping: 0.1
     attachment:
-      angle: -0.20
+      angle_offset: -0.37     # Absolute angle: -0.20
       radius: 0.06
       z_offset: 0.01
       yaw_offset: 0.0
@@ -88,11 +92,12 @@ fingers:
         geometry: { type: "cylinder", radius: 0.008, length: 0.025 }
 
   # Little
+  # Offset = -0.45 (current) - (-0.20) (previous) = -0.25
   - defaults:
       angle_limit: [-0.3, 1.4]
       damping: 0.1
     attachment:
-      angle: -0.45    # spread outward more
+      angle_offset: -0.25     # Absolute angle: -0.45
       radius: 0.065
       z_offset: 0.01
       yaw_offset: 0.0

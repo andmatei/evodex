@@ -51,20 +51,20 @@ f{{ index }}
   {% for segment in finger.segments %}
   <link name="{{ segment_id(finger_id, loop.index) }}">
     <inertial>
-      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
       <mass value="{{ segment.mass }}"/>
       <inertia ixx="{{ segment.inertia.ixx }}" iyy="{{ segment.inertia.iyy }}" izz="{{ segment.inertia.izz }}" ixy="0" ixz="0" iyz="0"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
       <geometry>
-        {{ render_geometry(segment.visual) }}
+        {{ render_geometry(segment.geometry) }}
       </geometry>
     </visual>
     <collision>
-      <origin xyz="0 0 {{ segment.visual.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
       <geometry>
-        {{ render_geometry(segment.collision) }}
+        {{ render_geometry(segment.geometry) }}
       </geometry>
     </collision>
   </link>
@@ -78,7 +78,7 @@ f{{ index }}
       rpy="0 0 {{ finger.attachment.angle + finger.attachment.yaw_offset }}"
     />
     {% else %}
-    <origin xyz="0 0 {{ loop.previtem.visual.length }}" rpy="0 0 0"/>
+    <origin xyz="0 0 {{ loop.previtem.geometry.length }}" rpy="0 0 0"/>
     {% endif %}
     <axis xyz="0 1 0"/>
     <limit 

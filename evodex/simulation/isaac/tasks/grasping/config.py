@@ -1,6 +1,7 @@
 """
 Configuration for the Dexterous Hand Grasping Environment using Isaac Lab.
 """
+
 from __future__ import annotations
 from dataclasses import MISSING
 
@@ -9,15 +10,30 @@ import torch
 import isaaclab.envs.mdp as mdp
 import isaaclab.sim as sim_utils
 
-from isaaclab.managers import ActionTermCfg, ActionTerm, ObservationGroupCfg, ObservationTermCfg, EventTermCfg, SceneEntityCfg, TerminationTermCfg
+from isaaclab.managers import (
+    ActionTermCfg,
+    ActionTerm,
+    ObservationGroupCfg,
+    ObservationTermCfg,
+    EventTermCfg,
+    SceneEntityCfg,
+    TerminationTermCfg,
+)
 from isaaclab.envs import ManagerBasedEnv, ManagerBasedRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.assets import ArticulationCfg, Articulation, RigidObjectCfg, DeformableObjectCfg, AssetBaseCfg
+from isaaclab.assets import (
+    ArticulationCfg,
+    Articulation,
+    RigidObjectCfg,
+    DeformableObjectCfg,
+    AssetBaseCfg,
+)
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 # Get the path to this file to construct relative paths for assets
 from pathlib import Path
+
 CURRENT_DIR = Path(__file__).parent
 
 
@@ -25,11 +41,15 @@ CURRENT_DIR = Path(__file__).parent
 class GraspingSceneCfg(InteractiveSceneCfg):
     robot: ArticulationCfg = MISSING
     object: RigidObjectCfg | DeformableObjectCfg = MISSING
-    
+
     table = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/Table",
-        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]),
-        spawn=sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]
+        ),
+        spawn=sim_utils.UsdFileCfg(
+            usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"
+        ),
     )
 
     # plane
@@ -49,6 +69,7 @@ class GraspingSceneCfg(InteractiveSceneCfg):
 @configclass
 class GripperCfg(ArticulationCfg):
     """Configuration for the dexterous hand robot."""
+
     spawn = sim_utils.UsdFileCfg(
         # Path to your generated URDF file
         usd_path=str(CURRENT_DIR / "assets/dexterous_hand_v1.urdf"),
@@ -56,7 +77,7 @@ class GripperCfg(ArticulationCfg):
             enabled_self_collisions=True,
             solver_position_iteration_count=8,
             solver_velocity_iteration_count=0,
-        )
+        ),
     )
     init_state = ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.6),  # Start above the ground
@@ -76,11 +97,11 @@ class BaseVelocityAction(ActionTerm):
     @property
     def action_size(self) -> int:
         return 6
-    
+
     def process_actions(self, actions: torch.Tensor):
         self._action[:, :3] = actions[:, :3] * self.cfg.linear_velocity_scale
         self._action[:, 3:] = actions[:, 3:] * self.cfg.angular_velocity_scale
-    
+
     def apply_actions(self):
         self._asset.write_root_velocity_to_sim(self._action)
 
@@ -88,6 +109,7 @@ class BaseVelocityAction(ActionTerm):
 @configclass
 class BaseVelocityActionCfg(ActionTermCfg):
     """Configuration for controlling the base velocity of the gripper."""
+
     class_type: type = BaseVelocityAction
 
     linear_velocity_scale: float = 0.1  # Scale for linear velocity commands
@@ -100,9 +122,7 @@ class ActionCfg:
         asset_name="gripper",
     )
     gripper_action: mdp.JointPositionActionCfg = mdp.JointPositionActionCfg(
-        asset_name="gripper",
-        joint_names=[".*"],
-        scale=1.0
+        asset_name="gripper", joint_names=[".*"], scale=1.0
     )
 
 
@@ -119,7 +139,7 @@ class CommandsConfig:
             roll=(0.0, 0.0),
             pitch=(0.0, 0.0),
             yaw=(0.0, 0.0),
-        )
+        ),
     )
 
     gripper_pose = mdp.UniformPoseCommandCfg(
@@ -134,7 +154,7 @@ class CommandsConfig:
             roll=(-3.14, 3.14),
             pitch=(-3.14, 3.14),
             yaw=(-3.14, 3.14),
-        )
+        ),
     )
 
     # TODO: Check if this is correct
@@ -150,18 +170,19 @@ class CommandsConfig:
             roll=(-3.14, 3.14),
             pitch=(-3.14, 3.14),
             yaw=(-3.14, 3.14),
-        )
+        ),
     )
 
 
 @configclass
 class ObservationCfg:
-
     @configclass
     class PolicyCfg(ObservationGroupCfg):
         joint_pos = ObservationTermCfg(func=mdp.joint_pos_rel)
         joint_vel = ObservationTermCfg(func=mdp.joint_vel_rel)
-        fingertip_pos = ObservationTermCfg(func=mdp.body_pose_w, body_names=[".*fingertip.*"]) # TODO: Calcualte the relative distance to the object
+        fingertip_pos = ObservationTermCfg(
+            func=mdp.body_pose_w, body_names=[".*fingertip.*"]
+        )  # TODO: Calcualte the relative distance to the object
         object_pos = ObservationTermCfg(func=mdp.body_pose_w, body_names=["cube"])
         target_pos = ObservationTermCfg(func=mdp.body_pose_w, body_names=["target"])
 
@@ -194,6 +215,7 @@ class EventCfg:
 @configclass
 class RewardCfg:
     """Configuration for the reward function."""
+
     pass
 
 
@@ -201,14 +223,18 @@ class RewardCfg:
 class TerminationCfg:
     time_out = TerminationTermCfg(func=mdp.time_out, time_out=True)
 
-    object_dropping = TerminationTermCfg(func=mdp.root_height_below_minimum, params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("object")})
+    object_dropping = TerminationTermCfg(
+        func=mdp.root_height_below_minimum,
+        params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("object")},
+    )
 
 
-#TODO: Implement curriculum learning
+# TODO: Implement curriculum learning
 @configclass
 class CurriculumCfg:
     """Configuration for curriculum learning."""
-    pass  
+
+    pass
 
 
 @configclass
@@ -230,4 +256,3 @@ class GraspingEnvCfg(ManagerBasedRLEnvCfg):
 
         # self.sim.dt = 1.0 / 120
         # self.sim.render_interval = self.decimation
-        

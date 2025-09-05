@@ -11,8 +11,10 @@ from enum import Enum
 # Defines the different types of geometric shapes that can be used
 # for visual or collision properties of a link.
 
+
 class Inertia(BaseModel):
     """Holds the calculated values for the inertia tensor."""
+
     ixx: float = 0.0
     ixy: float = 0.0
     ixz: float = 0.0
@@ -48,7 +50,7 @@ class GeometryConfig(BaseModel, ABC):
     def _calculate_unit_inertia(self) -> Inertia:
         pass
 
-    @computed_field # type: ignore
+    @computed_field  # type: ignore
     @property
     def unit_inertia(self) -> Inertia:
         return self._calculate_unit_inertia()
@@ -62,9 +64,9 @@ class BoxConfig(GeometryConfig):
 
     def _calculate_unit_inertia(self) -> Inertia:
         x, y, z = self.width, self.length, self.depth
-        ixx = (1/12) * (y**2 + z**2)
-        iyy = (1/12) * (x**2 + z**2)
-        izz = (1/12) * (x**2 + y**2)
+        ixx = (1 / 12) * (y**2 + z**2)
+        iyy = (1 / 12) * (x**2 + z**2)
+        izz = (1 / 12) * (x**2 + y**2)
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
 
 
@@ -75,7 +77,7 @@ class CylinderConfig(GeometryConfig):
 
     def _calculate_unit_inertia(self) -> Inertia:
         r, h = self.radius, self.length
-        ixx = (1/12) * (3 * r**2 + h**2)
+        ixx = (1 / 12) * (3 * r**2 + h**2)
         iyy = ixx
         izz = 0.5 * r**2
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
@@ -88,7 +90,7 @@ class CapsuleConfig(GeometryConfig):
 
     def _calculate_unit_inertia(self) -> Inertia:
         r, l = self.radius, self.length
-        ixx = (1/12) * (3*r**2 + l**2)
+        ixx = (1 / 12) * (3 * r**2 + l**2)
         iyy = ixx
         izz = 0.5 * r**2
         return Inertia(ixx=ixx, iyy=iyy, izz=izz)
@@ -100,7 +102,7 @@ class SphereConfig(GeometryConfig):
 
     def _calculate_unit_inertia(self) -> Inertia:
         r = self.radius
-        i = (2/5) * r**2
+        i = (2 / 5) * r**2
         return Inertia(ixx=i, iyy=i, izz=i)
 
 
@@ -111,13 +113,19 @@ AllGeometryConfigs = Union[BoxConfig, SphereConfig, CylinderConfig, CapsuleConfi
 # =============================================================== #
 # Defines the properties of a single link in the robot's kinematic chain.
 
+
 class LinkConfig(BaseModel):
     """A generic configuration for any link (e.g., a finger segment)."""
-    name: str = Field(..., description="A unique name for this link part (e.g., 'proximal').")
+
+    name: str = Field(
+        ..., description="A unique name for this link part (e.g., 'proximal')."
+    )
     mass: float = Field(..., gt=0, description="The mass of the link in kilograms.")
-    geometry: AllGeometryConfigs = Field(..., description="The geometry of the link.", discriminator="type")
-    
-    @computed_field # type: ignore
+    geometry: AllGeometryConfigs = Field(
+        ..., description="The geometry of the link.", discriminator="type"
+    )
+
+    @computed_field  # type: ignore
     @property
     def inertia(self) -> Inertia:
         return self.geometry.unit_inertia * self.mass
@@ -125,7 +133,9 @@ class LinkConfig(BaseModel):
 
 class BaseConfig(LinkConfig):
     """Configuration for the robot's base (palm)."""
+
     pass
+
 
 # =============================================================== #
 #                      Finger Configurations                      #
@@ -133,14 +143,26 @@ class BaseConfig(LinkConfig):
 # Defines the structure of a complete finger, from its attachment
 # point on the base to its segments and fingertip.
 class FingerAttachmentConfig(BaseModel):
-    angle_offset: float = Field(..., description="Angle in radians around the Z-axis where the finger attaches to the base.")
-    radius: float = Field(..., description="The radial distance from the base center to the finger attachment point.")
-    z_offset: float = Field(default=0.0, description="The vertical offset (Z-axis) of the finger attachment point.")
-    yaw_offset: float = Field(default=0.0, description="The local rotation of the finger around its own axis in radians.")
+    angle_offset: float = Field(
+        ...,
+        description="Angle in radians around the Z-axis where the finger attaches to the base.",
+    )
+    radius: float = Field(
+        ...,
+        description="The radial distance from the base center to the finger attachment point.",
+    )
+    z_offset: float = Field(
+        default=0.0,
+        description="The vertical offset (Z-axis) of the finger attachment point.",
+    )
+    yaw_offset: float = Field(
+        default=0.0,
+        description="The local rotation of the finger around its own axis in radians.",
+    )
 
     angle: float = Field(0.0, exclude=True)
 
-    @computed_field # type: ignore
+    @computed_field  # type: ignore
     @property
     def origin(self) -> Optional[Tuple[float, float, float]]:
         if self.radius is not None and self.z_offset is not None:
@@ -152,15 +174,26 @@ class FingerAttachmentConfig(BaseModel):
 
 
 class FingerDefaultsConfig(BaseModel):
-    angle_limit: Tuple[float, float] = Field(..., description="The min and max angle limits for the finger joints.")
+    angle_limit: Tuple[float, float] = Field(
+        ..., description="The min and max angle limits for the finger joints."
+    )
     damping: float = Field(..., description="The damping factor for the finger joints.")
 
 
 class FingerConfig(BaseModel):
-    defaults: FingerDefaultsConfig = Field(..., description="Default properties applied to all segments unless overridden.")
-    attachment: FingerAttachmentConfig = Field(..., description="Attachment configuration for the finger.")
-    segments: Tuple[LinkConfig, ...] = Field(..., description="A list of link configurations representing the finger's segments.")
-    fingertip: Optional[LinkConfig] = Field(None, description="Optional fingertip configuration.")
+    defaults: FingerDefaultsConfig = Field(
+        ..., description="Default properties applied to all segments unless overridden."
+    )
+    attachment: FingerAttachmentConfig = Field(
+        ..., description="Attachment configuration for the finger."
+    )
+    segments: Tuple[LinkConfig, ...] = Field(
+        ...,
+        description="A list of link configurations representing the finger's segments.",
+    )
+    fingertip: Optional[LinkConfig] = Field(
+        None, description="Optional fingertip configuration."
+    )
 
     @model_validator(mode="after")
     def validate_segments(self) -> "FingerConfig":
@@ -173,6 +206,7 @@ class FingerConfig(BaseModel):
 #                       Top-Level Configuration                   #
 # =============================================================== #
 # The main models that encompass the entire robot morphology.
+
 
 class RobotConfig(BaseModel):
     base: BaseConfig

@@ -2,6 +2,7 @@
 Isaac Lab environment for the Evodex dexterous hand to grasp a cube.
 This file contains the main RL logic for the task.
 """
+
 import torch
 
 from isaaclab.assets import Articulation, RigidObject
@@ -16,6 +17,7 @@ class GraspEnv(ManagerBasedRLEnv):
     """
     An environment where a dexterous hand learns to grasp a cube and move it to a target.
     """
+
     cfg: GraspEnvConfig
 
     def _setup_scene(self):
@@ -24,7 +26,7 @@ class GraspEnv(ManagerBasedRLEnv):
         self.robot = Articulation(self.cfg.robot)
         self.cube = RigidObject(self.cfg.cube)
         self.target = RigidObject(self.cfg.target)
-        
+
         # Add assets to the scene manager for easy access
         self.scene.add_asset("robot", self.robot)
         self.scene.add_asset("cube", self.cube)
@@ -33,7 +35,9 @@ class GraspEnv(ManagerBasedRLEnv):
         # Add frame transformer to get fingertip positions
         # IMPORTANT: This regex must match the final segment of your URDF links.
         # Example: "f._s." matches "f1_s2", "f2_s3" etc.
-        self.fingertip_frames = FrameTransformer(prim_path="{ENV_REGEX_PATH}/Robot/f._s.")
+        self.fingertip_frames = FrameTransformer(
+            prim_path="{ENV_REGEX_PATH}/Robot/f._s."
+        )
         self.scene.add_asset("fingertips", self.fingertip_frames)
 
     def _get_observations(self) -> dict:
@@ -44,14 +48,17 @@ class GraspEnv(ManagerBasedRLEnv):
         fingertip_pos_w, _ = self.fingertip_frames.get_transforms(indices=...)
 
         # Concatenate all observations for the policy
-        obs = torch.cat((
-            self.robot.data.joint_pos,
-            self.robot.data.joint_vel,
-            fingertip_pos_w.view(self.num_envs, -1),
-            cube_pos_w,
-            target_pos_w,
-        ), dim=-1)
-        
+        obs = torch.cat(
+            (
+                self.robot.data.joint_pos,
+                self.robot.data.joint_vel,
+                fingertip_pos_w.view(self.num_envs, -1),
+                cube_pos_w,
+                target_pos_w,
+            ),
+            dim=-1,
+        )
+
         return {"policy": obs}
 
     def _compute_rewards(self, actions) -> torch.Tensor:
@@ -63,7 +70,9 @@ class GraspEnv(ManagerBasedRLEnv):
         fingertip_pos = fingertip_pos - self.scene.env_origins.unsqueeze(1)
 
         # -- Stage 1: Reaching ---
-        dist_to_cube = torch.norm(fingertip_pos - cube_pos.unsqueeze(1), dim=-1).mean(dim=1)
+        dist_to_cube = torch.norm(fingertip_pos - cube_pos.unsqueeze(1), dim=-1).mean(
+            dim=1
+        )
         reach_reward = 1.0 / (1.0 + 8.0 * dist_to_cube**2)
 
         # -- Stage 2: Grasping ---
@@ -75,8 +84,10 @@ class GraspEnv(ManagerBasedRLEnv):
 
         # -- Stage 4: Moving ---
         dist_to_target = torch.norm(cube_pos - target_pos, dim=-1)
-        move_reward = (1.0 / (1.0 + 3.0 * dist_to_target**2)) * (lift_reward > 0.1).float()
-        
+        move_reward = (1.0 / (1.0 + 3.0 * dist_to_target**2)) * (
+            lift_reward > 0.1
+        ).float()
+
         # -- Success Bonus ---
         is_success = (dist_to_target < 0.05).float()
         success_bonus = is_success * 25.0
@@ -95,19 +106,17 @@ class GraspEnv(ManagerBasedRLEnv):
         """Check if the episode should terminate."""
         cube_pos = self.cube.data.root_pos_w - self.scene.env_origins
         target_pos = self.target.data.root_pos_w - self.scene.env_origins
-        
+
         is_dropped = cube_pos[:, 2] < 0.02
         is_success = torch.norm(cube_pos - target_pos, dim=-1) < 0.05
-        
+
         time_out = self.episode_length_buf >= self.max_episode_length
-        
+
         return is_dropped | is_success, time_out
 
     def _apply_actions(self, actions: dict):
         """Apply the actions to the robot."""
-        self.robot.set_joint_position_targets(
-            actions["finger_joints"], indices=...
-        )
+        self.robot.set_joint_position_targets(actions["finger_joints"], indices=...)
         self.robot.set_cartesian_position_targets(
             actions["base_pose"], body_name="base", indices=...
         )

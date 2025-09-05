@@ -9,10 +9,12 @@ THIS_DIR = Path(__file__).parent
 TEMPLATE_FILE = "robot.urdf.j2"
 TEMPLATES_DIR = THIS_DIR / "templates"
 
+
 def load_config(file_path: str) -> RobotConfig:
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         config = yaml.safe_load(file)
     return RobotConfig(**config)
+
 
 def save_urdf(config: RobotConfig, o_path: str) -> None:
     """
@@ -26,9 +28,7 @@ def save_urdf(config: RobotConfig, o_path: str) -> None:
     try:
         # 1. Set up Jinja2 environment to load templates from the correct directory.
         env = Environment(
-            loader=FileSystemLoader(TEMPLATES_DIR),
-            trim_blocks=True, 
-            lstrip_blocks=True
+            loader=FileSystemLoader(TEMPLATES_DIR), trim_blocks=True, lstrip_blocks=True
         )
         template = env.get_template(TEMPLATE_FILE)
 
@@ -40,9 +40,9 @@ def save_urdf(config: RobotConfig, o_path: str) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # 4. Write the rendered content to the specified file
-        with output_path.open('w') as f:
+        with output_path.open("w") as f:
             f.write(urdf_content)
-            
+
         print(f"✅ Successfully generated URDF file at: {output_path}")
     except Exception as e:
         print(f"❌ An error occurred during URDF generation: {e}")

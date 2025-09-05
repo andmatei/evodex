@@ -103,3 +103,11 @@ class GraspEnv(ManagerBasedRLEnv):
         
         return is_dropped | is_success, time_out
 
+    def _apply_actions(self, actions: dict):
+        """Apply the actions to the robot."""
+        self.robot.set_joint_position_targets(
+            actions["finger_joints"], indices=...
+        )
+        self.robot.set_cartesian_position_targets(
+            actions["base_pose"], body_name="base", indices=...
+        )

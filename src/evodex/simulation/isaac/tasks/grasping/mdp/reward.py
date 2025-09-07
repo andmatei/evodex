@@ -8,7 +8,7 @@ from isaaclab.sensors import FrameTransformer
 from isaaclab.envs import ManagerBasedRLEnv
 
 
-def object_is_lifter(
+def object_is_lifted(
     env: ManagerBasedRLEnv,
     minimal_height: float = 0.1,
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),

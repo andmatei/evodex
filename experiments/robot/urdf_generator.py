@@ -1,4 +1,3 @@
-from evodex.simulation.isaac.robot.config import RobotConfig
 from evodex.simulation.isaac.robot.utils import load_config, save_urdf
 
 if __name__ == "__main__":

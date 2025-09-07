@@ -1,3 +1,19 @@
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "evodex"
+version = "0.1.0"
+description = "Evodex robot package with 4-finger gripper"
+readme = "README.md"
+requires-python = "==3.11.*"
+authors = [
+    { name = "Andrei Matei", email = "a.matei2206@gmail.com" }
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+isaac = "internal.isaac:main"

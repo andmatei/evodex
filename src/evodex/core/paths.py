@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def fing_project_root(marker: str = "pyproject.toml") -> Path:
+def find_project_root(marker: str = "pyproject.toml") -> Path:
     """Finds the root directory of the project by looking for a marker file.
 
     Args:
@@ -32,7 +32,7 @@ def get_project_root(marker: str = "pyproject.toml") -> Path:
     env_root = os.environ.get("EVODEX_ROOT")
     if env_root:
         return Path(env_root).resolve()
-    return fing_project_root(marker=marker)
+    return find_project_root(marker=marker)
 
 
 PROJECT_ROOT = get_project_root()

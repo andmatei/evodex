@@ -72,6 +72,7 @@ yarn-error.log*
 
 # Project specific
 results/
+generated/
 *.json
 !default_config.json
 

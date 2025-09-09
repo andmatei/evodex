@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
 args_cli = parser.parse_args()
+args_cli.headless = True  # ensure headless mode
 
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
@@ -27,18 +28,19 @@ from evodex.simulation.isaac.robot.utils import (
     save_urdf,
     convert_urdf_to_usd,
 )
+from evodex.core.paths import PROJECT_ROOT
 
 if __name__ == "__main__":
     # --- Main script logic ---
     # Load the configuration
-    robot_config_path = "./configs/robot/3d/gripper_robot.yaml"
+    robot_config_path = f"{PROJECT_ROOT}/configs/robot/3d/gripper_robot.yaml"
     robot_config = load_config(robot_config_path)
 
     # Save the URDF file
-    output_path = "./generated/robot.urdf"
+    output_path = f"{PROJECT_ROOT}/generated/test.urdf"
     save_urdf(robot_config, output_path)
 
     # Convert the URDF to USD
-    usd_output_path = "./generated/robot.usd"
+    usd_output_path = f"{PROJECT_ROOT}/generated/test2.usd"
     convert_urdf_to_usd(output_path, usd_output_path)
     print(f"✅ Successfully converted URDF to USD file at: {usd_output_path}")

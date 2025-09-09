@@ -76,6 +76,14 @@ def convert_urdf_to_usd(urdf_path: str, output_path: str) -> None:
         fix_base=False,
         force_usd_conversion=True,
         merge_fixed_joints=False,
+        joint_drive=UrdfConverterCfg.JointDriveCfg(
+            gains=UrdfConverterCfg.JointDriveCfg.PDGainsCfg(
+                stiffness=50.0,
+                damping=1.0,
+            ),
+            target_type="position",
+            drive_type="acceleration",
+        ),
     )
 
     urdf_converter = UrdfConverter(urdf_converter_cfg)

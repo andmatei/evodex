@@ -50,7 +50,7 @@ def save_urdf(config: RobotConfig, o_path: str) -> None:
         print(f"❌ An error occurred during URDF generation: {e}")
 
 
-def convert_urdf_to_usd(urdf_path: str, output_path: str) -> None:
+def convert_urdf_to_usd(urdf_path: str, output_path: str) -> UrdfConverter:
     """
     Converts a URDF file to USD format using Isaac Sim's command-line tool.
 
@@ -60,8 +60,6 @@ def convert_urdf_to_usd(urdf_path: str, output_path: str) -> None:
     """
     if not os.path.isabs(urdf_path):
         urdf_path = os.path.abspath(urdf_path)
-    # if not check_file_path(urdf_path):
-    #     raise ValueError(f"Invalid file path: {urdf_path}")
 
     if not os.path.isabs(output_path):
         output_path = os.path.abspath(output_path)
@@ -87,3 +85,4 @@ def convert_urdf_to_usd(urdf_path: str, output_path: str) -> None:
     )
 
     urdf_converter = UrdfConverter(urdf_converter_cfg)
+    return urdf_converter

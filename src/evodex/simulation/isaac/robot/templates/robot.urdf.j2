@@ -1,6 +1,6 @@
 {%- macro render_geometry(shape) -%}
   {%- if shape.type == 'box' -%}
-  <box size="{{ shape.width }} {{ shape.length }} {{ shape.depth }}"/>
+  <box size="{{ shape.width }} {{ shape.length }} {{ shape.height }}"/>
   {%- elif shape.type == 'cylinder' -%}
   <cylinder radius="{{ shape.radius }}" length="{{ shape.length }}"/>
   {%- elif shape.type == 'sphere' -%}
@@ -19,7 +19,7 @@ f{{ index }}
 {%- endmacro -%}
 
 <?xml version="1.0"?>
-<robot name="{{ config.name | default('pydantic_robot') }}">
+<robot name="robot">
 
   <link name="base">
     <inertial>
@@ -51,18 +51,18 @@ f{{ index }}
   {% for segment in finger.segments %}
   <link name="{{ segment_id(finger_id, loop.index) }}">
     <inertial>
-      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.dimension / 2 }}" rpy="0 0 0"/>
       <mass value="{{ segment.mass }}"/>
       <inertia ixx="{{ segment.inertia.ixx }}" iyy="{{ segment.inertia.iyy }}" izz="{{ segment.inertia.izz }}" ixy="0" ixz="0" iyz="0"/>
     </inertial>
     <visual>
-      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.dimension / 2 }}" rpy="0 0 0"/>
       <geometry>
         {{ render_geometry(segment.geometry) }}
       </geometry>
     </visual>
     <collision>
-      <origin xyz="0 0 {{ segment.geometry.length / 2 }}" rpy="0 0 0"/>
+      <origin xyz="0 0 {{ segment.geometry.dimension / 2 }}" rpy="0 0 0"/>
       <geometry>
         {{ render_geometry(segment.geometry) }}
       </geometry>
@@ -78,7 +78,7 @@ f{{ index }}
       rpy="0 0 {{ finger.attachment.angle + finger.attachment.yaw_offset }}"
     />
     {% else %}
-    <origin xyz="0 0 {{ loop.previtem.geometry.length }}" rpy="0 0 0"/>
+    <origin xyz="0 0 {{ loop.previtem.geometry.dimension }}" rpy="0 0 0"/>
     {% endif %}
     <axis xyz="0 1 0"/>
     <limit 
@@ -91,6 +91,36 @@ f{{ index }}
 
   {# --- Update the parent link for the next iteration --- #}
   {% endfor %}
+
+  {# --- Add fingertip if defined --- #}
+  {% if finger.fingertip is defined %}
+  <link name="fingertip{{ finger_id }}">
+    <inertial>
+      <origin xyz="0 0 {{ finger.fingertip.geometry.dimension / 2 }}" rpy="0 0 0"/>
+      <mass value="{{ finger.fingertip.mass }}"/>
+      <inertia ixx="{{ finger.fingertip.inertia.ixx }}" iyy="{{ finger.fingertip.inertia.iyy }}" izz="{{ finger.fingertip.inertia.izz }}" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 {{ finger.fingertip.geometry.dimension / 2 }}" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(finger.fingertip.geometry) }}
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 {{ finger.fingertip.geometry.dimension / 2 }}" rpy="0 0 0"/>
+      <geometry>
+        {{ render_geometry(finger.fingertip.geometry) }}
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_{{ segment_id(finger_id, finger.segments | length) }}_to_fingertip{{ finger_id }}" type="fixed">
+    <parent link="{{ segment_id(finger_id, finger.segments | length) }}"/>
+    <child link="fingertip{{ finger_id }}"/>
+    <origin xyz="0 0 {{ finger.segments[-1].geometry.length }}" rpy="0 0 0"/>
+  </joint>
+
+  {% endif %}
   {% endfor %}
 
 </robot>

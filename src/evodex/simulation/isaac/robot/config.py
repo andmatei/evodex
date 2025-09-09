@@ -55,15 +55,27 @@ class GeometryConfig(BaseModel, ABC):
     def unit_inertia(self) -> Inertia:
         return self._calculate_unit_inertia()
 
+    @computed_field  # type: ignore
+    @property
+    def dimension(self) -> float:
+        return self._get_dimension()
+
+    @abstractmethod
+    def _get_dimension(self) -> float:
+        pass
+
 
 class BoxConfig(GeometryConfig):
     type: Literal[GeometryType.BOX] = GeometryType.BOX
     width: float = Field(..., description="Width of the box along the X-axis")
     length: float = Field(..., description="Length of the box along the Y-axis")
-    depth: float = Field(..., description="Height of the box along the Z-axis")
+    height: float = Field(..., description="Height of the box along the Z-axis")
+
+    def _get_dimension(self) -> float:
+        return self.height
 
     def _calculate_unit_inertia(self) -> Inertia:
-        x, y, z = self.width, self.length, self.depth
+        x, y, z = self.width, self.length, self.height
         ixx = (1 / 12) * (y**2 + z**2)
         iyy = (1 / 12) * (x**2 + z**2)
         izz = (1 / 12) * (x**2 + y**2)
@@ -74,6 +86,9 @@ class CylinderConfig(GeometryConfig):
     type: Literal[GeometryType.CYLINDER] = GeometryType.CYLINDER
     radius: float = Field(..., description="Radius of the cylinder")
     length: float = Field(..., description="Depth (height) of the cylinder")
+
+    def _get_dimension(self) -> float:
+        return self.length
 
     def _calculate_unit_inertia(self) -> Inertia:
         r, h = self.radius, self.length
@@ -88,6 +103,9 @@ class CapsuleConfig(GeometryConfig):
     radius: float = Field(..., description="Radius of the capsule")
     length: float = Field(..., description="Depth (height) of the capsule")
 
+    def _get_dimension(self) -> float:
+        return self.length
+
     def _calculate_unit_inertia(self) -> Inertia:
         r, l = self.radius, self.length
         ixx = (1 / 12) * (3 * r**2 + l**2)
@@ -99,6 +117,9 @@ class CapsuleConfig(GeometryConfig):
 class SphereConfig(GeometryConfig):
     type: Literal[GeometryType.SPHERE] = GeometryType.SPHERE
     radius: float = Field(..., description="Radius of the sphere")
+
+    def _get_dimension(self) -> float:
+        return self.radius * 2
 
     def _calculate_unit_inertia(self) -> Inertia:
         r = self.radius
@@ -117,9 +138,6 @@ AllGeometryConfigs = Union[BoxConfig, SphereConfig, CylinderConfig, CapsuleConfi
 class LinkConfig(BaseModel):
     """A generic configuration for any link (e.g., a finger segment)."""
 
-    name: str = Field(
-        ..., description="A unique name for this link part (e.g., 'proximal')."
-    )
     mass: float = Field(..., gt=0, description="The mass of the link in kilograms.")
     geometry: AllGeometryConfigs = Field(
         ..., description="The geometry of the link.", discriminator="type"

@@ -1,5 +1,5 @@
 import math
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 from evodex.evolution.types import EvolvableConfig, Gene, GeneList
 
@@ -71,6 +71,7 @@ class EvolvableFingerAttachmentConfig(FingerAttachmentConfig, EvolvableConfig):
 class EvolvableFingerConfig(FingerConfig, EvolvableConfig):
     attachment: EvolvableFingerAttachmentConfig
     segments: Tuple[EvolvableLinkConfig, ...]
+    fingertip: Optional[EvolvableLinkConfig] = None
 
     _genes = {
         "segments": GeneList(

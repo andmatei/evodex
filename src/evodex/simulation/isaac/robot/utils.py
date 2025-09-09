@@ -1,13 +1,15 @@
 import yaml
+import os
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
+from isaaclab.sim.converters import UrdfConverter, UrdfConverterCfg
 
 from .config import RobotConfig
 
-THIS_DIR = Path(__file__).parent
+CURRENT_DIR = Path(__file__).parent
 TEMPLATE_FILE = "robot.urdf.j2"
-TEMPLATES_DIR = THIS_DIR / "templates"
+TEMPLATES_DIR = CURRENT_DIR / "templates"
 
 
 def load_config(file_path: str) -> RobotConfig:
@@ -46,3 +48,34 @@ def save_urdf(config: RobotConfig, o_path: str) -> None:
         print(f"✅ Successfully generated URDF file at: {output_path}")
     except Exception as e:
         print(f"❌ An error occurred during URDF generation: {e}")
+
+
+def convert_urdf_to_usd(urdf_path: str, output_path: str) -> None:
+    """
+    Converts a URDF file to USD format using Isaac Sim's command-line tool.
+
+    Args:
+        urdf_path (str): The path to the input URDF file.
+        usd_path (str): The path where the output USD file will be saved.
+    """
+    if not os.path.isabs(urdf_path):
+        urdf_path = os.path.abspath(urdf_path)
+    # if not check_file_path(urdf_path):
+    #     raise ValueError(f"Invalid file path: {urdf_path}")
+
+    if not os.path.isabs(output_path):
+        output_path = os.path.abspath(output_path)
+
+    output_dir = os.path.dirname(output_path)
+    output_file_name = os.path.basename(output_path)
+
+    urdf_converter_cfg = UrdfConverterCfg(
+        asset_path=urdf_path,
+        usd_dir=output_dir,
+        usd_file_name=output_file_name,
+        fix_base=False,
+        force_usd_conversion=True,
+        merge_fixed_joints=False,
+    )
+
+    urdf_converter = UrdfConverter(urdf_converter_cfg)

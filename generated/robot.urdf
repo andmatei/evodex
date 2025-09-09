@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="pydantic_robot">
+<robot name="robot">
 
   <link name="base">
     <inertial>
@@ -128,6 +128,33 @@
   </joint>
 
 
+  <link name="fingertipf1">
+    <inertial>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="2.56e-07" iyy="2.56e-07" izz="2.56e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f1_s3_to_fingertipf1" type="fixed">
+    <parent link="f1_s3"/>
+    <child link="fingertipf1"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
+  </joint>
+
+
   <link name="f2_s1">
     <inertial>
       <origin xyz="0 0 0.025" rpy="0 0 0"/>
@@ -228,6 +255,33 @@
       effort="10" velocity="1.0"
     />
     <dynamics damping="0.1"/>
+  </joint>
+
+
+  <link name="fingertipf2">
+    <inertial>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="2.56e-07" iyy="2.56e-07" izz="2.56e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f2_s3_to_fingertipf2" type="fixed">
+    <parent link="f2_s3"/>
+    <child link="fingertipf2"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
   </joint>
 
 
@@ -334,6 +388,33 @@
   </joint>
 
 
+  <link name="fingertipf3">
+    <inertial>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="2.56e-07" iyy="2.56e-07" izz="2.56e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f3_s3_to_fingertipf3" type="fixed">
+    <parent link="f3_s3"/>
+    <child link="fingertipf3"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
+  </joint>
+
+
   <link name="f4_s1">
     <inertial>
       <origin xyz="0 0 0.025" rpy="0 0 0"/>
@@ -434,6 +515,33 @@
       effort="10" velocity="1.0"
     />
     <dynamics damping="0.1"/>
+  </joint>
+
+
+  <link name="fingertipf4">
+    <inertial>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="2.56e-07" iyy="2.56e-07" izz="2.56e-07" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.008" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.008"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="j_f4_s3_to_fingertipf4" type="fixed">
+    <parent link="f4_s3"/>
+    <child link="fingertipf4"/>
+    <origin xyz="0 0 0.03" rpy="0 0 0"/>
   </joint>
 
 

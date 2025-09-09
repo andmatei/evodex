@@ -34,3 +34,7 @@ def main():
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         sys.exit(e.returncode)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,11 +1,10 @@
 base:
-  name: "palm"
   mass: 0.5
   geometry:
     type: box
     width: 0.1
     length: 0.1
-    depth: 0.02
+    height: 0.02
 
 fingers:
   - defaults:
@@ -17,26 +16,22 @@ fingers:
       z_offset: 0.0
       yaw_offset: 3.1415
     segments:
-      - name: "finger1_proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry:
           type: cylinder
           radius: 0.01
           length: 0.05
-      - name: "finger1_middle"
-        mass: 0.03
+      - mass: 0.03
         geometry:
           type: cylinder
           radius: 0.009
           length: 0.04
-      - name: "finger1_distal"
-        mass: 0.02
+      - mass: 0.02
         geometry:
           type: cylinder
           radius: 0.008
           length: 0.03
     fingertip:
-      name: "finger1_tip"
       mass: 0.01
       geometry:
         type: sphere
@@ -51,26 +46,22 @@ fingers:
       z_offset: 0.0
       yaw_offset: 3.1415
     segments:
-      - name: "finger2_proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry:
           type: cylinder
           radius: 0.01
           length: 0.05
-      - name: "finger2_middle"
-        mass: 0.03
+      - mass: 0.03
         geometry:
           type: cylinder
           radius: 0.009
           length: 0.04
-      - name: "finger2_distal"
-        mass: 0.02
+      - mass: 0.02
         geometry:
           type: cylinder
           radius: 0.008
           length: 0.03
     fingertip:
-      name: "finger2_tip"
       mass: 0.01
       geometry:
         type: sphere
@@ -85,26 +76,22 @@ fingers:
       z_offset: 0.0
       yaw_offset: 3.1415
     segments:
-      - name: "finger3_proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry:
           type: cylinder
           radius: 0.01
           length: 0.05
-      - name: "finger3_middle"
-        mass: 0.03
+      - mass: 0.03
         geometry:
           type: cylinder
           radius: 0.009
           length: 0.04
-      - name: "finger3_distal"
-        mass: 0.02
+      - mass: 0.02
         geometry:
           type: cylinder
           radius: 0.008
           length: 0.03
     fingertip:
-      name: "finger3_tip"
       mass: 0.01
       geometry:
         type: sphere
@@ -119,26 +106,22 @@ fingers:
       z_offset: 0.0
       yaw_offset: 3.1415
     segments:
-      - name: "finger4_proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry:
           type: cylinder
           radius: 0.01
           length: 0.05
-      - name: "finger4_middle"
-        mass: 0.03
+      - mass: 0.03
         geometry:
           type: cylinder
           radius: 0.009
           length: 0.04
-      - name: "finger4_distal"
-        mass: 0.02
+      - mass: 0.02
         geometry:
           type: cylinder
           radius: 0.008
           length: 0.03
     fingertip:
-      name: "finger4_tip"
       mass: 0.01
       geometry:
         type: sphere

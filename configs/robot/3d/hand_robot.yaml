@@ -7,7 +7,7 @@ base:
     type: "box"
     width: 0.08
     length: 0.08
-    depth: 0.02
+    height: 0.02
 
 fingers:
   # Thumb

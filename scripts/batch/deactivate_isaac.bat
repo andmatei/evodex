@@ -2,7 +2,7 @@
 REM Get the directory of this script
 set SCRIPT_DIR=%~dp0
 REM Assume .env is one level up
-set ENV_FILE=%SCRIPT_DIR%..\.env
+set ENV_FILE=%SCRIPT_DIR%..\..\.env
 
 REM Check if .env exists
 if not exist "%ENV_FILE%" (

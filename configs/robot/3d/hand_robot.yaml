@@ -1,7 +1,4 @@
-name: "dexterous_hand_v1"
-
 base:
-  name: "palm"
   mass: 0.4
   geometry:
     type: "box"
@@ -21,11 +18,9 @@ fingers:
       z_offset: 0.01
       yaw_offset: 0.87
     segments:
-      - name: "metacarpal"
-        mass: 0.06
+      - mass: 0.06
         geometry: { type: "cylinder", radius: 0.012, length: 0.035 }
-      - name: "proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry: { type: "cylinder", radius: 0.011, length: 0.025 }
         
   # Index
@@ -39,14 +34,11 @@ fingers:
       z_offset: 0.01
       yaw_offset: 0.0
     segments:
-      - name: "proximal"
-        mass: 0.045
+      - mass: 0.045
         geometry: { type: "cylinder", radius: 0.009, length: 0.055 }
-      - name: "medial"
-        mass: 0.035
+      - mass: 0.035
         geometry: { type: "cylinder", radius: 0.009, length: 0.035 }
-      - name: "distal"
-        mass: 0.025
+      - mass: 0.025
         geometry: { type: "cylinder", radius: 0.0085, length: 0.025 }
 
   # Middle
@@ -60,14 +52,11 @@ fingers:
       z_offset: 0.01
       yaw_offset: 0.0
     segments:
-      - name: "proximal"
-        mass: 0.05
+      - mass: 0.05
         geometry: { type: "cylinder", radius: 0.009, length: 0.06 }
-      - name: "medial"
-        mass: 0.04
+      - mass: 0.04
         geometry: { type: "cylinder", radius: 0.009, length: 0.04 }
-      - name: "distal"
-        mass: 0.025
+      - mass: 0.025
         geometry: { type: "cylinder", radius: 0.0085, length: 0.03 }
 
   # Ring
@@ -81,14 +70,11 @@ fingers:
       z_offset: 0.01
       yaw_offset: 0.0
     segments:
-      - name: "proximal"
-        mass: 0.045
+      - mass: 0.045
         geometry: { type: "cylinder", radius: 0.0085, length: 0.055 }
-      - name: "medial"
-        mass: 0.035
+      - mass: 0.035
         geometry: { type: "cylinder", radius: 0.0085, length: 0.035 }
-      - name: "distal"
-        mass: 0.025
+      - mass: 0.025
         geometry: { type: "cylinder", radius: 0.008, length: 0.025 }
 
   # Little
@@ -102,12 +88,9 @@ fingers:
       z_offset: 0.01
       yaw_offset: 0.0
     segments:
-      - name: "proximal"
-        mass: 0.04
+      - mass: 0.04
         geometry: { type: "cylinder", radius: 0.008, length: 0.05 }
-      - name: "medial"
-        mass: 0.03
+      - mass: 0.03
         geometry: { type: "cylinder", radius: 0.008, length: 0.03 }
-      - name: "distal"
-        mass: 0.02
+      - mass: 0.02
         geometry: { type: "cylinder", radius: 0.0075, length: 0.02 }

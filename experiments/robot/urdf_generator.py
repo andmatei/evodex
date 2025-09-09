@@ -1,6 +1,7 @@
 import argparse
 
-from evodex.simulation.isaac.robot.utils import load_config, save_urdf
+from evodex.simulation.isaac.robot.utils import load_config
+from evodex.simulation.isaac.robot.urdf import save_urdf
 
 parser = argparse.ArgumentParser(
     description="Generate a URDF file from a robot configuration."

@@ -23,11 +23,9 @@ args_cli.headless = True  # ensure headless mode
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
-from evodex.simulation.isaac.robot.utils import (
-    load_config,
-    save_urdf,
-    convert_urdf_to_usd,
-)
+from evodex.simulation.isaac.robot.utils import load_config
+from evodex.simulation.isaac.robot.urdf import save_urdf
+from evodex.simulation.isaac.robot.usd import convert_urdf_to_usd
 from evodex.core.paths import PROJECT_ROOT
 
 if __name__ == "__main__":

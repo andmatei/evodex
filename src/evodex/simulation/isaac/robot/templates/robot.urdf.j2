@@ -93,7 +93,7 @@ f{{ index }}
   {% endfor %}
 
   {# --- Add fingertip if defined --- #}
-  {% if finger.fingertip is defined %}
+  {% if finger.fingertip is not none %}
   <link name="fingertip{{ finger_id }}">
     <inertial>
       <origin xyz="0 0 {{ finger.fingertip.geometry.dimension / 2 }}" rpy="0 0 0"/>
